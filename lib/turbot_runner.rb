@@ -1,6 +1,8 @@
 require 'open3'
 
 module TurbotRunner
+  class ScriptError < StandardError; end
+
   class BaseRunner
     def initialize(bot_directory)
       @bot_directory = bot_directory
@@ -15,6 +17,7 @@ module TurbotRunner
         raise "Could not parse #{manifest_path} as JSON"
       end
 
+      @interrupted = false
       @schemas = {}
     end
 
@@ -24,44 +27,66 @@ module TurbotRunner
       command = "#{interpreter_for(scraper_file)} #{scraper_file}"
       data_type = @config['data_type']
 
-      run_script_each_line(command) do |line|
-        record = JSON.parse(line)
-        errors = validate(record, data_type)
+      begin
+        run_script_each_line(command) do |line|
+          record = JSON.parse(line)
+          errors = validate(record, data_type)
 
-        if errors.empty?
-          process_valid(record, data_type)
-        else
-          process_invalid(record, data_type)
-        end
+          if errors.empty?
+            handle_valid_record(record, data_type)
 
-        transformers.each do |transformer|
-          file = File.join(@bot_directory, transformer['file'])
-          command1 = "#{interpreter_for(file)} #{file}"
-          data_type1 = transformer['data_type']
+            transformers.each do |transformer|
+              file = File.join(@bot_directory, transformer['file'])
+              command1 = "#{interpreter_for(file)} #{file}"
+              data_type1 = transformer['data_type']
 
-          run_script_each_line(command1, :input => line) do |line1|
-            record1 = JSON.parse(line1)
+              run_script_each_line(command1, :input => line) do |line1|
+                record1 = JSON.parse(line1)
 
-            errors = validate(record1, data_type1)
+                errors = validate(record1, data_type1)
 
-            if errors.empty?
-              process_valid(record1, data_type1)
-            else
-              process_invalid(record1, data_type1)
+                if errors.empty?
+                  handle_valid_record(record1, data_type1)
+                else
+                  handle_invalid_record(record1, data_type1, errors)
+                end
+              end
             end
+          else
+            handle_invalid_record(record, data_type, errors)
           end
         end
+
+        if @interrupted
+          handle_interrupted_run
+        else
+          handle_successful_run
+        end
+      rescue ScriptError => e
+        handle_failed_run(e.message)
       end
+    end
+
+    def interrupt
+      @interrupted = true
     end
 
     private
     def transformers
-      @config['transformers']
+      @config['transformers'] || []
     end
 
     def validate(record, data_type)
       schema = get_schema(data_type)
-      JSON::Validator.fully_validate(schema, record, errors_as_objects => true)
+      errors = JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
+      errors.map do |error|
+        case error[:message]
+        when /The property '#\/' did not contain a required property of '(\w+)'/
+          "Missing required attribute: #{Regexp.last_match(1)}"
+        else
+          error[:message]
+        end
+      end
     end
 
     def get_schema(data_type)
@@ -73,11 +98,21 @@ module TurbotRunner
       @schemas[data_type]
     end
 
-    def process_valid(record, data_type)
+    def handle_valid_record(record, data_type)
       raise NotImplementedError
     end
 
-    def process_invalid(record, data_type)
+    def handle_invalid_record(record, data_type, errors)
+      raise NotImplementedError
+    end
+
+    def handle_successful_run
+    end
+
+    def handle_interrupted_run
+    end
+
+    def handle_failed_run(output)
       raise NotImplementedError
     end
 
@@ -91,13 +126,18 @@ module TurbotRunner
 
         timeout = options[:timeout] || 3600
 
-        loop do
+        while !@interrupted do
           begin
             result = stdout.readline.strip
             yield result unless result.empty?
           rescue EOFError
             break
           end
+        end
+
+        if !wait_thread.value.success?
+          output = stderr.read
+          raise ScriptError.new(output)
         end
       end
     end
