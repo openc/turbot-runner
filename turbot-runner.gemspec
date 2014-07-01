@@ -13,8 +13,14 @@ Gem::Specification.new do |gem|
 
   # use git to list files in main repo
   gem.files = %x{ git ls-files }.split("\n").select do |d|
-    d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/)}
+    d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|schema/)}
   end
+
+  submodule_files = %x{git submodule foreach --recursive git ls-files}.split("\n").select do |d|
+    d =~ %r{^(schemas/)}
+  end.map{|x| "schema/#{x}"}
+
+  gem.files.concat(submodule_files)
 
   gem.required_ruby_version = '>=1.9.2'
 
