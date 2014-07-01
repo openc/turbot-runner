@@ -63,7 +63,7 @@ module TurbotRunner
           handle_successful_run
         end
       rescue ScriptError => e
-        handle_failed_run(e.message)
+        handle_failed_run
       end
     end
 
@@ -112,13 +112,13 @@ module TurbotRunner
     def handle_interrupted_run
     end
 
-    def handle_failed_run(output)
+    def handle_failed_run
       raise NotImplementedError
     end
 
     def run_script_each_line(command, options={})
       # TODO: handle timeouts, errors
-      Open3::popen3(command) do |stdin, stdout, stderr, wait_thread|
+      Open3::popen2(command) do |stdin, stdout, wait_thread|
         if options[:input]
           stdin.puts(options[:input])
           stdin.close
@@ -136,8 +136,7 @@ module TurbotRunner
         end
 
         if !wait_thread.value.success?
-          output = stderr.read
-          raise ScriptError.new(output)
+          raise ScriptError
         end
       end
     end
