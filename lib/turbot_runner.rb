@@ -4,6 +4,9 @@ module TurbotRunner
   class ScriptError < StandardError; end
 
   class BaseRunner
+
+    attr_reader :wait_thread
+
     def initialize(bot_directory)
       @bot_directory = bot_directory
 
@@ -26,12 +29,10 @@ module TurbotRunner
 
       command = "#{interpreter_for(scraper_file)} #{scraper_file}"
       data_type = @config['data_type']
-
       begin
         run_script_each_line(command) do |line|
           record = JSON.parse(line)
           errors = validate(record, data_type)
-
           if errors.empty?
             handle_valid_record(record, data_type)
 
@@ -63,7 +64,11 @@ module TurbotRunner
           handle_successful_run
         end
       rescue ScriptError => e
-        handle_failed_run
+        if @interrupted
+          handle_interrupted_run
+        else
+          handle_failed_run
+        end
       end
     end
 
@@ -119,6 +124,7 @@ module TurbotRunner
     def run_script_each_line(command, options={})
       # TODO: handle timeouts, errors
       Open3::popen2(command) do |stdin, stdout, wait_thread|
+        @wait_thread = wait_thread
         if options[:input]
           stdin.puts(options[:input])
           stdin.close
