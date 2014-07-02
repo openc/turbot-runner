@@ -156,7 +156,8 @@ module TurbotRunner
     def interpreter_for(file)
       case file
       when /\.rb$/
-        'ruby'
+        prerun = File.expand_path("../prerun.rb", __FILE__)
+        "ruby -r#{prerun}"
       when /\.py$/
         'python'
       else
