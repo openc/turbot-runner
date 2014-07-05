@@ -31,7 +31,13 @@ module TurbotRunner
       data_type = @config['data_type']
       begin
         run_script_each_line(command) do |line|
-          record = JSON.parse(line)
+          begin
+            record = JSON.parse(line)
+          rescue JSON::ParserError
+            handle_non_json_output(line)
+            next
+          end
+
           errors = validate(record, data_type)
           if errors.empty?
             handle_valid_record(record, data_type)
@@ -42,7 +48,12 @@ module TurbotRunner
               data_type1 = transformer['data_type']
 
               run_script_each_line(command1, :input => line) do |line1|
-                record1 = JSON.parse(line1)
+                begin
+                  record1 = JSON.parse(line1)
+                rescue JSON::ParserError
+                  handle_non_json_output(line1)
+                  next
+                end
 
                 errors = validate(record1, data_type1)
 
@@ -108,6 +119,10 @@ module TurbotRunner
     end
 
     def handle_invalid_record(record, data_type, errors)
+      raise NotImplementedError
+    end
+
+    def handle_non_json_output(line)
       raise NotImplementedError
     end
 
