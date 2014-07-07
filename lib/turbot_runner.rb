@@ -20,11 +20,13 @@ module TurbotRunner
         raise "Could not parse #{manifest_path} as JSON"
       end
 
+      @status = :initialized
       @interrupted = false
       @schemas = {}
     end
 
     def run(opts={})
+      @status = :running
       validation_required = opts[:validate] || true
 
       command = "#{interpreter_for(scraper_file)} #{scraper_file}"
@@ -70,17 +72,25 @@ module TurbotRunner
         end
 
         if @interrupted
+          @status = :interrupted
           handle_interrupted_run
         else
+          @status = :successful
           handle_successful_run
         end
       rescue ScriptError => e
         if @interrupted
+          @status = :interrupted
           handle_interrupted_run
         else
+          @status = :failed
           handle_failed_run
         end
       end
+    end
+
+    def successful?
+      status == :successful
     end
 
     def interrupt
