@@ -90,7 +90,7 @@ module TurbotRunner
     end
 
     def successful?
-      status == :successful
+      @status == :successful
     end
 
     def interrupt
