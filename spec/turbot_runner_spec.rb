@@ -3,9 +3,6 @@ require 'turbot_runner'
 
 describe TurbotRunner::BaseRunner do
   it 'can run a bot' do
-    # This test runs slowly - there seems to be some delay in subprocesses
-    # reading from their stdins, but this is not observed when the code is run
-    # outside of rspec.
 
     class SpecRunner < TurbotRunner::BaseRunner
       def validate(record, data_type)
