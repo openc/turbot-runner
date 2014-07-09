@@ -31,8 +31,21 @@ module TurbotRunner
 
       command = "#{interpreter_for(scraper_file)} #{scraper_file}"
       data_type = @config['data_type']
+
+      scraper_runner = CommandRunner.new(command)
+
+      transformers.each do |config|
+        file = File.join(@bot_directory, config['file'])
+        command = "#{interpreter_for(file)} #{file}"
+        transformer_runner = CommandRunner.new(command)
+        config['runner'] = transformer_runner
+      end
+
       begin
-        run_script_each_line(command) do |line|
+        until @interrupted do
+          line = scraper_runner.get_next_line
+          break if line.nil?
+
           begin
             record = JSON.parse(line)
           rescue JSON::ParserError
@@ -41,29 +54,30 @@ module TurbotRunner
           end
 
           errors = validate(record, data_type)
+
           if errors.empty?
             handle_valid_record(record, data_type)
 
             transformers.each do |transformer|
-              file = File.join(@bot_directory, transformer['file'])
-              command1 = "#{interpreter_for(file)} #{file}"
               data_type1 = transformer['data_type']
 
-              run_script_each_line(command1, :input => line) do |line1|
-                begin
-                  record1 = JSON.parse(line1)
-                rescue JSON::ParserError
-                  handle_non_json_output(line1)
-                  next
-                end
+              runner = transformer['runner']
+              runner.send_line(line)
+              line1 = runner.get_next_line
 
-                errors = validate(record1, data_type1)
+              begin
+                record1 = JSON.parse(line1)
+              rescue JSON::ParserError
+                handle_non_json_output(line1)
+                next
+              end
 
-                if errors.empty?
-                  handle_valid_record(record1, data_type1)
-                else
-                  handle_invalid_record(record1, data_type1, errors)
-                end
+              errors = validate(record1, data_type1)
+
+              if errors.empty?
+                handle_valid_record(record1, data_type1)
+              else
+                handle_invalid_record(record1, data_type1, errors)
               end
             end
           else
@@ -86,6 +100,11 @@ module TurbotRunner
           @status = :failed
           handle_failed_run
         end
+      end
+    ensure
+      scraper_runner.close unless scraper_runner.nil?
+      transformers.each do |transformer|
+        transformer['runner'].close unless transformer['runner'].nil?
       end
     end
 
@@ -146,32 +165,6 @@ module TurbotRunner
       raise NotImplementedError
     end
 
-    def run_script_each_line(command, options={})
-      # TODO: handle timeouts, errors
-      Open3::popen2(command) do |stdin, stdout, wait_thread|
-        @wait_thread = wait_thread
-        if options[:input]
-          stdin.puts(options[:input])
-          stdin.close
-        end
-
-        timeout = options[:timeout] || 3600
-
-        while !@interrupted do
-          begin
-            result = stdout.readline.strip
-            yield result unless result.empty?
-          rescue EOFError
-            break
-          end
-        end
-
-        if !wait_thread.value.success?
-          raise ScriptError
-        end
-      end
-    end
-
     def scraper_file
       candidates = Dir.glob(File.join(@bot_directory, 'scraper.{rb,py}'))
       case candidates.size
@@ -194,6 +187,35 @@ module TurbotRunner
       else
         raise "Could not run #{file}"
       end
+    end
+  end
+
+  class CommandRunner
+    def initialize(command, opts={})
+      @command = command
+      @timeout = opts[:timeout] ||= 3600
+      @stdin, @stdout, @wait_thread = Open3.popen2(command)
+    end
+
+    def get_next_line
+      begin
+        Timeout::timeout(@timeout) { @stdout.gets }
+      rescue Timeout::Error
+        STDOUT.puts("#{@command} produced no output for #{@timeout} seconds")
+        raise ScriptError
+      rescue EOFError
+        raise ScriptError unless @wait_thread.value.success?
+        return nil
+      end
+    end
+
+    def send_line(line)
+      @stdin.puts(line)
+    end
+
+    def close
+      @stdin.close
+      @stdout.close
     end
   end
 end
