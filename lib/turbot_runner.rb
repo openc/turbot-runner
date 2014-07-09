@@ -1,4 +1,6 @@
+require 'json'
 require 'open3'
+require 'timeout'
 
 module TurbotRunner
   class ScriptError < StandardError; end
