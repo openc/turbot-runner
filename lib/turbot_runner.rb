@@ -126,13 +126,32 @@ module TurbotRunner
     def validate(record, data_type)
       schema = get_schema(data_type)
       errors = JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
-      errors.map do |error|
+      messages = errors.map do |error|
         case error[:message]
         when /The property '#\/' did not contain a required property of '(\w+)'/
           "Missing required attribute: #{Regexp.last_match(1)}"
         else
           error[:message]
         end
+      end
+
+      if messages.empty?
+        identifying_fields = identifying_fields_for_data_type(data_type)
+        if record.slice(*identifying_fields).empty?
+          messages << "Missing attributes for identifying fields: #{identifying_fields.join(', ')}"
+        end
+      end
+
+      messages
+    end
+
+    def identifying_fields_for_data_type(data_type)
+      if data_type == @config['data_type']
+        @config['identifying_fields']
+      else
+        transformers = @config['transformers'].select {|transformer| transformer['data_type'] == data_type}
+        raise "Expected to find precisely 1 transformer matching #{data_type} in manifest.json" unless transformers.size == 1
+        transformers[0]['identifying_fields']
       end
     end
 
