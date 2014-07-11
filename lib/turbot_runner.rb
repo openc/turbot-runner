@@ -86,7 +86,6 @@ module TurbotRunner
             handle_invalid_record(record, data_type, errors)
           end
         end
-
         if @interrupted
           @status = :interrupted
           handle_interrupted_run
@@ -137,7 +136,13 @@ module TurbotRunner
 
       if messages.empty?
         identifying_fields = identifying_fields_for_data_type(data_type)
-        if record.slice(*identifying_fields).empty?
+
+        hash = Hash.new
+        identifying_fields.each do |k|
+          hash[k] = record[k] if record.has_key?(k)
+        end
+
+        if hash.empty?
           messages << "Missing attributes for identifying fields: #{identifying_fields.join(', ')}"
         end
       end
