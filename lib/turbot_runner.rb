@@ -209,7 +209,7 @@ module TurbotRunner
         prerun = File.expand_path("../prerun.rb", __FILE__)
         "ruby -r#{prerun}"
       when /\.py$/
-        'python'
+        'python -u'
       else
         raise "Could not run #{file}"
       end
