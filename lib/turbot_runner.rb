@@ -240,8 +240,7 @@ module TurbotRunner
     end
 
     def close
-      @stdin.close
-      @stdout.close
+      @wait_thread.kill
     end
   end
 end
