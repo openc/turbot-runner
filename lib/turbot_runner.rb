@@ -1,5 +1,5 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/to_query'
+#require 'active_support/core_ext/hash/slice'
+#require 'active_support/core_ext/object/to_query'
 require 'json'
 require 'open3'
 require 'set'
@@ -28,7 +28,7 @@ module TurbotRunner
       @status = :initialized
       @interrupted = false
       @schemas = {}
-      @seen_uids = Set.new
+#      @seen_uids = Set.new
     end
 
     def run(opts={})
@@ -141,21 +141,21 @@ module TurbotRunner
         end
       end
 
-      if messages.empty?
-        identifying_fields = identifying_fields_for_data_type(data_type)
-        identifying_hash = record.slice(*identifying_fields)
-
-        if identifying_hash.empty?
-          messages << "Missing attributes for identifying fields: #{identifying_fields.join(', ')}"
-        else
-          record_uid = Digest::SHA1.hexdigest(identifying_hash.to_query)
-          if @seen_uids.include?(record_uid)
-            messages << "Values for identifying fields must be unique.  There has already been a record with: #{identifying_hash.to_json}"
-          else
-            @seen_uids << record_uid
-          end
-        end
-      end
+#      if messages.empty?
+#        identifying_fields = identifying_fields_for_data_type(data_type)
+#        identifying_hash = record.slice(*identifying_fields)
+#
+#        if identifying_hash.empty?
+#          messages << "Missing attributes for identifying fields: #{identifying_fields.join(', ')}"
+#        else
+#          record_uid = Digest::SHA1.hexdigest(identifying_hash.to_query)
+#          if @seen_uids.include?(record_uid)
+#            messages << "Values for identifying fields must be unique.  There has already been a record with: #{identifying_hash.to_json}"
+#          else
+#            @seen_uids << record_uid
+#          end
+#        end
+#      end
 
       messages
     end
