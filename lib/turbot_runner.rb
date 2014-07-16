@@ -1,5 +1,8 @@
+require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/object/to_query'
 require 'json'
 require 'open3'
+require 'set'
 require 'timeout'
 
 module TurbotRunner
@@ -25,11 +28,11 @@ module TurbotRunner
       @status = :initialized
       @interrupted = false
       @schemas = {}
+      @seen_uids = Set.new
     end
 
     def run(opts={})
       @status = :running
-      validation_required = opts[:validate] || true
 
       command = "#{interpreter_for(scraper_file)} #{scraper_file}"
       data_type = @config['data_type']
@@ -66,6 +69,10 @@ module TurbotRunner
               runner = transformer['runner']
               runner.send_line(line)
               line1 = runner.get_next_line
+
+              # A transformer should output an empty line if it doesn't make
+              # sense to transform a record.
+              next if line1.strip.empty?
 
               begin
                 record1 = JSON.parse(line1)
@@ -136,14 +143,17 @@ module TurbotRunner
 
       if messages.empty?
         identifying_fields = identifying_fields_for_data_type(data_type)
+        identifying_hash = record.slice(*identifying_fields)
 
-        hash = Hash.new
-        identifying_fields.each do |k|
-          hash[k] = record[k] if record.has_key?(k)
-        end
-
-        if hash.empty?
+        if identifying_hash.empty?
           messages << "Missing attributes for identifying fields: #{identifying_fields.join(', ')}"
+        else
+          record_uid = Digest::SHA1.hexdigest(identifying_hash.to_query)
+          if @seen_uids.include?(record_uid)
+            messages << "Values for identifying fields must be unique.  There has already been a record with: #{identifying_hash.to_json}"
+          else
+            @seen_uids << record_uid
+          end
         end
       end
 

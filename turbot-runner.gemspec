@@ -24,5 +24,6 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>=1.9.2'
 
+  gem.add_dependency "activesupport", '~>4.1.0'
   gem.add_dependency "json-schema", '2.2.2'
 end
