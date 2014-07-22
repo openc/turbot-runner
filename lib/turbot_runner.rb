@@ -250,6 +250,9 @@ module TurbotRunner
     end
 
     def close
+      @stdin.close
+      @stdout.read # drain pipe
+      @stdout.close
       @wait_thread.kill
     end
   end
