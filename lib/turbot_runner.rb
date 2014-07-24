@@ -28,7 +28,6 @@ module TurbotRunner
       @status = :initialized
       @interrupted = false
       @schemas = {}
-#      @seen_uids = Set.new
     end
 
     def run(opts={})
@@ -49,7 +48,17 @@ module TurbotRunner
       begin
         until @interrupted do
           line = scraper_runner.get_next_line
-          break if line.nil?
+          if line.nil?
+            if scraper_runner.finished?
+              if scraper_runner.success?
+                break
+              else
+                raise ScriptError
+              end
+            else
+              next
+            end
+          end
 
           begin
             record = JSON.parse(line)
@@ -227,6 +236,11 @@ module TurbotRunner
   end
 
   class CommandRunner
+
+    def to_s
+      "CommandRunner #{@command}, pid #{@wait_thread.pid} (#{@wait_thread.status})"
+    end
+
     def initialize(command, opts={})
       @command = command
       @timeout = opts[:timeout] ||= 3600
@@ -243,6 +257,16 @@ module TurbotRunner
         raise ScriptError unless @wait_thread.value.success?
         return nil
       end
+    end
+
+    def success?
+      if finished?
+        @wait_thread.value.success?
+      end
+    end
+
+    def finished?
+      !@wait_thread.status
     end
 
     def send_line(line)

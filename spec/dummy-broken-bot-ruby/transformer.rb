@@ -1,6 +1,6 @@
 require 'json'
-STDIN.each_line do |line|
 
+STDIN.each_line do |line|
   raw_record = JSON.parse(line)
 
   transformed_record = {

@@ -11,6 +11,16 @@ class SpecRunner < TurbotRunner::BaseRunner
   end
 end
 
+class BrokenRunner < TurbotRunner::BaseRunner
+  def validate(record, data_type)
+    []
+  end
+
+  def handle_failed_run
+  end
+end
+
+
 describe TurbotRunner::BaseRunner do
   it 'can run a ruby bot' do
     runner = SpecRunner.new('spec/dummy-bot-ruby')
@@ -38,5 +48,14 @@ describe TurbotRunner::BaseRunner do
     expect(runner).to receive(:handle_valid_record).with({'n' => 8, 'goodbye' => 'goodbye, 8'}, 'goodbye')
     expect(runner).to receive(:handle_successful_run)
     runner.run
+  end
+
+  describe "broken bots" do
+    it 'should call handle_failed_run' do
+      runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
+      expect(runner).to receive(:handle_valid_record)
+      expect(runner).to receive(:handle_failed_run)
+      runner.run
+    end
   end
 end
