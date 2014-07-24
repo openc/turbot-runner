@@ -48,6 +48,7 @@ module TurbotRunner
       begin
         until @interrupted do
           line = scraper_runner.get_next_line
+
           if line.nil?
             if scraper_runner.finished?
               if scraper_runner.success?
@@ -79,9 +80,24 @@ module TurbotRunner
               runner.send_line(line)
               line1 = runner.get_next_line
 
-              # A transformer should output an empty line if it doesn't make
+              if line1.nil?
+                if runner.finished?
+                  if runner.success?
+                    break
+                  else
+                    raise ScriptError
+                  end
+                else
+                  next
+                end
+              end
+
+              # A transformer can output an empty line if it doesn't make
               # sense to transform a record.
-              next if line1.strip.empty?
+              if line1.strip.empty?
+                puts
+                next
+              end
 
               begin
                 record1 = JSON.parse(line1)

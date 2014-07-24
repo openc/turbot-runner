@@ -51,11 +51,22 @@ describe TurbotRunner::BaseRunner do
   end
 
   describe "broken bots" do
-    it 'should call handle_failed_run' do
-      runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
-      expect(runner).to receive(:handle_valid_record)
-      expect(runner).to receive(:handle_failed_run)
-      runner.run
+    describe "failing bot without transformer" do
+      it 'should call handle_failed_run' do
+        runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
+        expect(runner).to receive(:handle_valid_record)
+        expect(runner).to receive(:handle_failed_run)
+        runner.run
+      end
+    end
+
+    describe "failing bot with transformer" do
+      it 'should call handle_failed_run' do
+        runner = BrokenRunner.new('spec/dummy-broken-bot-ruby-2')
+        expect(runner).to receive(:handle_valid_record)
+        expect(runner).to receive(:handle_failed_run)
+        runner.run
+      end
     end
   end
 end
