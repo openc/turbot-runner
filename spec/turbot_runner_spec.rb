@@ -15,9 +15,6 @@ class BrokenRunner < TurbotRunner::BaseRunner
   def validate(record, data_type)
     []
   end
-
-  def handle_failed_run
-  end
 end
 
 
@@ -60,11 +57,21 @@ describe TurbotRunner::BaseRunner do
       end
     end
 
-    describe "failing bot with transformer" do
+    describe "failing bot with successful transformer" do
       it 'should call handle_failed_run' do
         runner = BrokenRunner.new('spec/dummy-broken-bot-ruby-2')
-        expect(runner).to receive(:handle_valid_record)
+        expect(runner).to receive(:handle_valid_record) # first record
+        expect(runner).to receive(:handle_valid_record) # first transform
         expect(runner).to receive(:handle_failed_run)
+        runner.run
+      end
+    end
+
+    describe "sucessful bot with failing transformer" do
+      it 'should call handle_failed_run' do
+        runner = BrokenRunner.new('spec/dummy-broken-bot-ruby-3')
+        expect(runner).to receive(:handle_valid_record) # the untransformed one
+        expect(runner).to receive(:handle_failed_run) # the transformer breaks immediately
         runner.run
       end
     end

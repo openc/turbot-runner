@@ -77,6 +77,8 @@ module TurbotRunner
               data_type1 = transformer['data_type']
 
               runner = transformer['runner']
+              raise ScriptError if runner.failed?
+
               runner.send_line(line)
               line1 = runner.get_next_line
 
@@ -278,6 +280,12 @@ module TurbotRunner
     def success?
       if finished?
         @wait_thread.value.success?
+      end
+    end
+
+    def failed?
+      if finished?
+        !@wait_thread.value.success?
       end
     end
 
