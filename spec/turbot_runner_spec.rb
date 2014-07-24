@@ -15,6 +15,12 @@ class BrokenRunner < TurbotRunner::BaseRunner
   def validate(record, data_type)
     []
   end
+
+  def handle_valid_record(*args)
+  end
+
+  def handle_failed_run
+  end
 end
 
 
@@ -54,6 +60,12 @@ describe TurbotRunner::BaseRunner do
         expect(runner).to receive(:handle_valid_record)
         expect(runner).to receive(:handle_failed_run)
         runner.run
+      end
+
+      it 'should set `error` attribute of runner with exception message' do
+        runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
+        runner.run
+        expect(runner.error.to_s).to match(/oops/)
       end
     end
 

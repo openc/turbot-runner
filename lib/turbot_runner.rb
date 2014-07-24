@@ -11,6 +11,7 @@ module TurbotRunner
   class BaseRunner
 
     attr_reader :wait_thread
+    attr_reader :error
 
     def initialize(bot_directory)
       @bot_directory = bot_directory
@@ -54,7 +55,7 @@ module TurbotRunner
               if scraper_runner.success?
                 break
               else
-                raise ScriptError
+                scraper_runner.raise_if_failed!
               end
             else
               next
@@ -77,7 +78,7 @@ module TurbotRunner
               data_type1 = transformer['data_type']
 
               runner = transformer['runner']
-              raise ScriptError if runner.failed?
+              runner.raise_if_failed!
 
               runner.send_line(line)
               line1 = runner.get_next_line
@@ -87,7 +88,7 @@ module TurbotRunner
                   if runner.success?
                     break
                   else
-                    raise ScriptError
+                    runner.raise_if_failed!
                   end
                 else
                   next
@@ -133,6 +134,7 @@ module TurbotRunner
           handle_interrupted_run
         else
           @status = :failed
+          @error = e
           handle_failed_run
         end
       end
@@ -262,17 +264,16 @@ module TurbotRunner
     def initialize(command, opts={})
       @command = command
       @timeout = opts[:timeout] ||= 3600
-      @stdin, @stdout, @wait_thread = Open3.popen2(command)
+      @stdin, @stdout, @stderr, @wait_thread = Open3.popen3(command)
     end
 
     def get_next_line
       begin
         Timeout::timeout(@timeout) { @stdout.gets }
       rescue Timeout::Error
-        STDOUT.puts("#{@command} produced no output for #{@timeout} seconds")
-        raise ScriptError
+        raise TurbotRunner::ScriptError.new("#{@command} produced no output for #{@timeout} seconds")
       rescue EOFError
-        raise ScriptError unless @wait_thread.value.success?
+        raise_if_failed!
         return nil
       end
     end
@@ -287,6 +288,10 @@ module TurbotRunner
       if finished?
         !@wait_thread.value.success?
       end
+    end
+
+    def raise_if_failed!
+      raise TurbotRunner::ScriptError.new(@stderr.read()) if failed?
     end
 
     def finished?
