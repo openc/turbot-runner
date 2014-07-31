@@ -9,6 +9,9 @@ class SpecRunner < TurbotRunner::BaseRunner
       []
     end
   end
+
+  def handle_failed_run
+  end
 end
 
 class BrokenRunner < TurbotRunner::BaseRunner
@@ -25,6 +28,14 @@ end
 
 
 describe TurbotRunner::BaseRunner do
+  before do
+    $stderr = StringIO.new
+  end
+
+  after do
+    $stderr = STDERR
+  end
+
   it 'can run a ruby bot' do
     runner = SpecRunner.new('spec/dummy-bot-ruby')
 
@@ -37,6 +48,7 @@ describe TurbotRunner::BaseRunner do
     expect(runner).to receive(:handle_valid_record).with({'n' => 4, 'goodbye' => 'goodbye, 4'}, 'goodbye')
     expect(runner).to receive(:handle_successful_run)
     runner.run
+    expect($stderr.string).to eq("hello from ruby\n")
   end
 
   it 'can run a python bot' do
@@ -51,6 +63,7 @@ describe TurbotRunner::BaseRunner do
     expect(runner).to receive(:handle_valid_record).with({'n' => 8, 'goodbye' => 'goodbye, 8'}, 'goodbye')
     expect(runner).to receive(:handle_successful_run)
     runner.run
+    expect($stderr.string).to eq("hello from python\n")
   end
 
   describe "broken bots" do
@@ -62,10 +75,11 @@ describe TurbotRunner::BaseRunner do
         runner.run
       end
 
-      it 'should set `error` attribute of runner with exception message' do
+      it 'should write exception to stderr' do
         runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
         runner.run
-        expect(runner.error.to_s).to match(/oops/)
+        expect($stderr.string).to match(/^hello/)
+        expect($stderr.string).to match(/oops/)
       end
     end
 
@@ -77,6 +91,12 @@ describe TurbotRunner::BaseRunner do
         expect(runner).to receive(:handle_failed_run)
         runner.run
       end
+
+      it 'should write exception to stderr' do
+        runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
+        runner.run
+        expect($stderr.string).to match(/oops/)
+      end
     end
 
     describe "sucessful bot with failing transformer" do
@@ -85,6 +105,12 @@ describe TurbotRunner::BaseRunner do
         expect(runner).to receive(:handle_valid_record) # the untransformed one
         expect(runner).to receive(:handle_failed_run) # the transformer breaks immediately
         runner.run
+      end
+
+      it 'should write exception to stderr' do
+        runner = BrokenRunner.new('spec/dummy-broken-bot-ruby')
+        runner.run
+        expect($stderr.string).to match(/oops/)
       end
     end
   end

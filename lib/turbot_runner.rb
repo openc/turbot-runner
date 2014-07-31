@@ -1,9 +1,11 @@
 #require 'active_support/core_ext/hash/slice'
 #require 'active_support/core_ext/object/to_query'
 require 'json'
+require 'json-schema'
 require 'open3'
 require 'set'
 require 'timeout'
+require 'io/wait'
 
 module TurbotRunner
   class ScriptError < StandardError; end
@@ -128,20 +130,33 @@ module TurbotRunner
           @status = :successful
           handle_successful_run
         end
+
+        handle_stderr(scraper_runner.drain_stderr)
+
+        transformers.each do |transformer|
+          runner = transformer['runner']
+          handle_stderr(runner.drain_stderr)
+        end
+
       rescue ScriptError => e
         if @interrupted
           @status = :interrupted
           handle_interrupted_run
         else
           @status = :failed
-          @error = e
           handle_failed_run
         end
       end
     ensure
+      handle_stderr(scraper_runner.drain_stderr)
       scraper_runner.close unless scraper_runner.nil?
+
       transformers.each do |transformer|
-        transformer['runner'].close unless transformer['runner'].nil?
+        runner = transformer['runner']
+        if !runner.nil?
+          handle_stderr(runner.drain_stderr)
+          runner.close
+        end
       end
     end
 
@@ -226,8 +241,8 @@ module TurbotRunner
     def handle_interrupted_run
     end
 
-    def handle_failed_run
-      raise NotImplementedError
+    def handle_stderr(data)
+      $stderr.write(data)
     end
 
     def scraper_file
@@ -278,6 +293,14 @@ module TurbotRunner
       end
     end
 
+    def drain_stderr
+      output = ''
+      while @stderr.ready?
+        output += @stderr.read(256)
+      end
+      output
+    end
+
     def success?
       if finished?
         @wait_thread.value.success?
@@ -291,7 +314,7 @@ module TurbotRunner
     end
 
     def raise_if_failed!
-      raise TurbotRunner::ScriptError.new(@stderr.read()) if failed?
+      raise TurbotRunner::ScriptError if failed?
     end
 
     def finished?
