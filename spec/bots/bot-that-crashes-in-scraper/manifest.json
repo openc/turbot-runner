@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-that-crashes-in-scraper",
+    "description": "This is a bot that crashes in the scraper",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

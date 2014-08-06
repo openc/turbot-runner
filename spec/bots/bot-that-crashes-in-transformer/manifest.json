@@ -1,0 +1,20 @@
+{
+    "bot_id": "bot-that-crashes-in-transformer",
+    "description": "This is a bot that crashes in the transformer",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb", "transformer1.rb", "transformer2.rb"],
+    "transformers": [
+        {
+            "file": "transformer1.rb",
+            "data_type": "simple-licence",
+            "identifying_fields": ["licence_number"]
+        },
+        {
+            "file": "transformer2.rb",
+            "data_type": "simple-licence",
+            "identifying_fields": ["licence_number"]
+        }
+    ]
+}

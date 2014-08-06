@@ -1,0 +1,8 @@
+{
+    "bot_id": "ruby-bot",
+    "description": "This is a ruby bot",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

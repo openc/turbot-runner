@@ -1,0 +1,8 @@
+{
+    "bot_id": "invalid-record-bot",
+    "description": "This is a bot that produces an invalid record",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

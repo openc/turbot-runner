@@ -1,0 +1,8 @@
+{
+    "bot_id": "python-bot",
+    "description": "This is a python bot",
+    "language": "python",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.py"]
+}

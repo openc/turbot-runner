@@ -1,0 +1,8 @@
+{
+    "bot_id": "slow-bot",
+    "description": "This bot sleeps between each record it produces",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

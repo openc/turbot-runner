@@ -1,8 +1,0 @@
-{
-    "bot_id": "dummy-bot",
-    "data_type": "hello",
-    "description": "This is a dummy bot",
-    "identifying_fields": ["number"],
-    "files": ["scraper.rb"],
-    "frequency": "monthly"
-}

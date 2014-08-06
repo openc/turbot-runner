@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-with-pause",
+    "description": "This bot pauses for ten second halfway after outputting five lines",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

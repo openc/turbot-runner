@@ -1,0 +1,20 @@
+{
+    "bot_id": "bot-with-transformers",
+    "description": "This is a bot with multiple transformers",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"],
+    "transformers": [
+        {
+            "file": "transformer1.rb",
+            "data_type": "simple-licence",
+            "identifying_fields": ["licence_number"]
+        },
+        {
+            "file": "transformer2.rb",
+            "data_type": "simple-licence",
+            "identifying_fields": ["licence_number"]
+        }
+    ]
+}
