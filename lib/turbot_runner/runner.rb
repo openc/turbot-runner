@@ -11,11 +11,12 @@ module TurbotRunner
       @record_handler = options[:record_handler]
       @log_to_file = options[:log_to_file]
       @timeout = options[:timeout]
+      @output_directory = options[:output_directory] || File.join(@directory, 'output')
     end
 
     def run
-      FileUtils.rm_rf(output_directory)
-      FileUtils.mkdir_p(output_directory)
+      FileUtils.rm_rf(@output_directory)
+      FileUtils.mkdir_p(@output_directory)
 
       return false if not run_scraper
 
@@ -106,7 +107,7 @@ module TurbotRunner
 
     def output_file(script, extension='.out')
       basename = File.basename(script, script_extension)
-      File.join(output_directory, basename) + extension
+      File.join(@output_directory, basename) + extension
     end
 
     def script_extension
@@ -132,7 +133,7 @@ module TurbotRunner
     end
 
     def scraper_output_file
-      File.join(output_directory, 'scraper.out')
+      File.join(@output_directory, 'scraper.out')
     end
 
     def language
@@ -141,10 +142,6 @@ module TurbotRunner
 
     def scraper_data_type
       @config[:data_type]
-    end
-
-    def output_directory
-      File.join(@directory, 'output')
     end
   end
 end
