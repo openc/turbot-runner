@@ -15,8 +15,11 @@ module TurbotRunner
         errors = validate(record)
 
         if errors.empty?
-          rc = @record_handler.handle_valid_record(record, @data_type)
-          @runner.interrupt unless rc
+          begin
+            @record_handler.handle_valid_record(record, @data_type)
+          rescue InterruptRun
+            @runner.interrupt
+          end
         else
           @record_handler.handle_invalid_record(record, @data_type, errors)
           @runner.interrupt_and_mark_as_failed

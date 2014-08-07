@@ -1,4 +1,5 @@
 require 'turbot_runner/base_handler'
+require 'turbot_runner/exceptions'
 require 'turbot_runner/processor'
 require 'turbot_runner/runner'
 require 'turbot_runner/script_runner'

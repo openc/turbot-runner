@@ -139,7 +139,7 @@ describe TurbotRunner::Runner do
 
           def handle_valid_record(record, data_type)
             @count += 1
-            @count < 5 ? true : false
+            raise TurbotRunner::InterruptRun if @count >= 5
           end
         end
 
