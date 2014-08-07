@@ -15,7 +15,6 @@ module TurbotRunner
     end
 
     def run
-      FileUtils.rm_rf(@output_directory)
       FileUtils.mkdir_p(@output_directory)
 
       return false if not run_scraper
