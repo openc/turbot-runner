@@ -17,20 +17,20 @@ module TurbotRunner
     def run
       FileUtils.mkdir_p(@output_directory)
 
-      return false if not run_scraper
+      return false if not run_script(scraper_config)
 
-      transformers.each do |transformer|
-        return false if not run_transformer(transformer)
+      transformers.each do |transformer_config|
+        return false if not run_script(transformer_config, input_file=scraper_output_file)
       end
 
       true
     end
 
     def process_output
-      return false if not process_scraper_output
+      return false if not process_script_output(scraper_config)
 
-      transformers.each do |transformer|
-        return false if not process_transformer_output(transformer)
+      transformers.each do |transformer_config|
+        return false if not process_script_output(transformer_config)
       end
 
       true
@@ -50,25 +50,13 @@ module TurbotRunner
       end
     end
 
-    def run_scraper
-      run_script(scraper_script, scraper_data_type)
-    end
-
-    def run_transformer(transformer)
-      run_script(
-        transformer[:file],
-        transformer[:data_type],
-        input_file=scraper_output_file
-      )
-    end
-
-    def run_script(script, data_type, input_file=nil)
-      command = build_command(script, input_file)
+    def run_script(script_config, input_file=nil)
+      command = build_command(script_config[:file], input_file)
 
       runner = ScriptRunner.new(
         command,
-        output_file(script),
-        data_type,
+        output_file(script_config[:file]),
+        script_config,
         :record_handler => @record_handler,
         :timeout => @timeout
       )
@@ -76,18 +64,10 @@ module TurbotRunner
       runner.run
     end
 
-    def process_scraper_output
-      process_script_output(scraper_script, scraper_data_type)
-    end
+    def process_script_output(script_config)
+      processor = Processor.new(nil, script_config, @record_handler)
 
-    def process_transformer_output(transformer)
-      process_script_output(transformer[:file], transformer[:data_type])
-    end
-
-    def process_script_output(script, data_type)
-      processor = Processor.new(nil, data_type, @record_handler)
-
-      File.open(output_file(script)) do |f|
+      File.open(output_file(script_config[:file])) do |f|
         f.each_line do |line|
           processor.process(line)
         end
@@ -123,6 +103,14 @@ module TurbotRunner
       }[language]
     end
 
+    def scraper_config
+      {
+        :file => scraper_script,
+        :data_type => scraper_data_type,
+        :identifying_fields => scraper_identifying_fields
+      }
+    end
+
     def scraper_script
       "scraper#{script_extension}"
     end
@@ -141,6 +129,10 @@ module TurbotRunner
 
     def scraper_data_type
       @config[:data_type]
+    end
+
+    def scraper_identifying_fields
+      @config[:identifying_fields]
     end
   end
 end

@@ -8,12 +8,12 @@ trap('INT') {}
 
 module TurbotRunner
   class ScriptRunner
-    def initialize(command, output_file, data_type, options={})
+    def initialize(command, output_file, script_config, options={})
       @command = command
       @output_file = output_file
 
       record_handler = options[:record_handler] || BaseHandler.new  # A BaseHandler does nothing
-      @processor = Processor.new(self, data_type, record_handler)
+      @processor = Processor.new(self, script_config, record_handler)
 
       @timeout = options[:timeout] || 3600
     end

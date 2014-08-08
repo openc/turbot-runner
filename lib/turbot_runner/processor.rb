@@ -3,9 +3,10 @@ require 'json-schema'
 
 module TurbotRunner
   class Processor
-    def initialize(runner, data_type, record_handler)
+    def initialize(runner, script_config, record_handler)
       @runner = runner
-      @data_type = data_type
+      @data_type = script_config[:data_type]
+      @identifying_fields = script_config[:identifying_fields]
       @record_handler = record_handler
     end
 
@@ -44,6 +45,18 @@ module TurbotRunner
           error[:message]
         end
       end
+
+      if messages.empty?
+        identifying_attributes = record.reject do |k, v|
+          !@identifying_fields.include?(k) || v.nil? || v == ''
+        end
+
+        if identifying_attributes.empty?
+          messages << "There were no values provided for any of the identifying fields: #{@identifying_fields.join(', ')}"
+        end
+      end
+
+      messages
     end
 
     def schema
