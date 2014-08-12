@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-that-emits-run-ended",
+    "description": "This is a bot that emits RUN ENDED",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

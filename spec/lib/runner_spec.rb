@@ -91,6 +91,25 @@ describe TurbotRunner::Runner do
       end
     end
 
+    context 'with a bot that outputs RUN ENDED' do
+      before do
+        @runner = TurbotRunner::Runner.new(
+          'spec/bots/bot-that-emits-run-ended',
+          :log_to_file => true
+        )
+      end
+      it 'calls handle_run_ended on the handler' do
+        expect_any_instance_of(TurbotRunner::BaseHandler).to receive(:handle_run_ended)
+        @runner.run
+      end
+
+      it 'interrupts the run' do
+        expect_any_instance_of(TurbotRunner::ScriptRunner).to receive(:interrupt)
+        @runner.run
+      end
+    end
+
+
     context 'with a bot that crashes in scraper' do
       before do
         @runner = TurbotRunner::Runner.new(
@@ -209,7 +228,7 @@ describe TurbotRunner::Runner do
           @records_seen[data_type] += 1
         end
       end
-      
+
       handler = Handler.new
       runner = TurbotRunner::Runner.new(
         'spec/bots/bot-with-transformer',

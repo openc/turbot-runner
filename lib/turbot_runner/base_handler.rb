@@ -3,6 +3,9 @@ module TurbotRunner
     def handle_valid_record(record, data_type)
     end
 
+    def handle_run_ended
+    end
+
     def handle_invalid_record(record, data_type, line)
     end
 
