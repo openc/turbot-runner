@@ -35,15 +35,23 @@ module TurbotRunner
         retry
       end
         
-      # Read from output file line by line until either we reach the end of the
-      # file and the script has exited, or @interrupted becomes true.
+      # Read from output file buildling up lines byte by byte byte by byte
+      # until either we reach the end of the file and the script has exited, or
+      # @interrupted becomes true.  We cannot use IO#readline here because if
+      # only half a line has been synced to the file by the time we read it,
+      # then the incomplete line will be read, causing chaos down the line.
+      line = ''
+
       until @interrupted do
-        begin
-          line = f.readline
-          @processor.process(line)
-        rescue EOFError
+        byte = f.read(1)
+        if byte.nil?
           break unless script_thread.alive?
           sleep 0.1
+        elsif byte == "\n"
+          @processor.process(line)
+          line = ''
+        else
+          line << byte
         end
       end
 
