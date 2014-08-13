@@ -12,18 +12,23 @@ module TurbotRunner
 
     def process(line)
       begin
-        record = JSON.parse(line)
-        errors = validate(record)
-
-        if errors.empty?
-          begin
-            @record_handler.handle_valid_record(record, @data_type)
-          rescue InterruptRun
-            @runner.interrupt
-          end
+        if line.strip == "RUN ENDED"
+          @record_handler.handle_run_ended
+          @runner.interrupt
         else
-          @record_handler.handle_invalid_record(record, @data_type, errors)
-          @runner.interrupt_and_mark_as_failed
+          record = JSON.parse(line)
+          errors = validate(record)
+
+          if errors.empty?
+            begin
+              @record_handler.handle_valid_record(record, @data_type)
+            rescue InterruptRun
+              @runner.interrupt
+            end
+          else
+            @record_handler.handle_invalid_record(record, @data_type, errors)
+            @runner.interrupt_and_mark_as_failed
+          end
         end
       rescue JSON::ParserError
         @record_handler.handle_invalid_json(line)
