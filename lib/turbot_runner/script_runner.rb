@@ -1,5 +1,3 @@
-require 'timeout'
-
 # This is a useful blog post:
 # http://blog.robseaman.com/2008/12/12/sending-ctrl-c-to-a-subprocess-with-ruby
 
@@ -42,15 +40,23 @@ module TurbotRunner
       # then the incomplete line will be read, causing chaos down the line.
       line = ''
 
+      time_of_last_read = Time.now
+
       until @interrupted do
         byte = f.read(1)
         if byte.nil?
-          break unless script_thread.alive?
-          sleep 0.1
+          if script_thread.alive?
+            sleep 0.1
+            interrupt_and_mark_as_failed if (Time.now - time_of_last_read) > @timeout
+          else
+            break
+          end
         elsif byte == "\n"
           @processor.process(line)
+          time_of_last_read = Time.now
           line = ''
         else
+          time_of_last_read = Time.now
           line << byte
         end
       end
@@ -75,18 +81,11 @@ module TurbotRunner
 
     private
     def run_command(command)
-      begin
-        Timeout::timeout(@timeout) do
-          system(command)
+      system(command)
 
-          # A nil exitstatus indicates that the script was interrupted.  A
-          # termsig of 2 indicates that the script was interrupted by a SIGINT.
-          $?.exitstatus == 0 || ($?.exitstatus.nil? && $?.termsig == 2)
-        end
-      rescue Timeout::Error
-        kill_running_processes
-        false
-      end
+      # A nil exitstatus indicates that the script was interrupted.  A
+      # termsig of 2 indicates that the script was interrupted by a SIGINT.
+      $?.exitstatus == 0 || ($?.exitstatus.nil? && $?.termsig == 2)
     end
 
     def kill_running_processes
