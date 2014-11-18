@@ -65,6 +65,10 @@ module TurbotRunner
     end
 
     def process_script_output(script_config)
+      # The first argument to the Processor constructor is a nil
+      # Runner. This is because no running behaviour
+      # (e.g. interruptions etc) is required; we just want to do
+      # record handling.
       processor = Processor.new(nil, script_config, @record_handler)
 
       File.open(output_file(script_config[:file])) do |f|
