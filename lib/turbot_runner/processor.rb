@@ -14,7 +14,7 @@ module TurbotRunner
       begin
         if line.strip == "RUN ENDED"
           @record_handler.handle_run_ended
-          @runner.interrupt
+          @runner.interrupt if @runner
         else
           record = JSON.parse(line)
           errors = validate(record)
@@ -23,16 +23,16 @@ module TurbotRunner
             begin
               @record_handler.handle_valid_record(record, @data_type)
             rescue InterruptRun
-              @runner.interrupt
+              @runner.interrupt if @runner
             end
           else
             @record_handler.handle_invalid_record(record, @data_type, errors)
-            @runner.interrupt_and_mark_as_failed
+            @runner.interrupt_and_mark_as_failed if @runner
           end
         end
       rescue JSON::ParserError
         @record_handler.handle_invalid_json(line)
-        @runner.interrupt_and_mark_as_failed
+        @runner.interrupt_and_mark_as_failed if @runner
       end
     end
 
