@@ -16,24 +16,20 @@ module TurbotRunner
 
     def run
       FileUtils.mkdir_p(@output_directory)
-
-      return false if not run_script(scraper_config)
-
+      succeeded = run_script(scraper_config)
+      # Run the transformers even if the scraper fails
       transformers.each do |transformer_config|
-        return false if not run_script(transformer_config, input_file=scraper_output_file)
+        succeeded = run_script(transformer_config, input_file=scraper_output_file) && succeeded
       end
-
-      true
+      succeeded
     end
 
     def process_output
-      return false if not process_script_output(scraper_config)
+      process_script_output(scraper_config)
 
       transformers.each do |transformer_config|
-        return false if not process_script_output(transformer_config)
+        process_script_output(transformer_config)
       end
-
-      true
     end
 
     private
@@ -53,7 +49,7 @@ module TurbotRunner
     def run_script(script_config, input_file=nil)
       command = build_command(script_config[:file], input_file)
 
-      runner = ScriptRunner.new(
+      script_runner = ScriptRunner.new(
         command,
         output_file(script_config[:file]),
         script_config,
@@ -61,7 +57,7 @@ module TurbotRunner
         :timeout => @timeout
       )
 
-      runner.run
+      script_runner.run # returns boolean indicating success
     end
 
     def process_script_output(script_config)

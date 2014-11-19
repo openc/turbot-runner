@@ -4,5 +4,12 @@
     "language": "ruby",
     "data_type": "primary data",
     "identifying_fields": ["licence_number"],
-    "files": ["scraper.rb"]
+    "files": ["scraper.rb", "transformer1.rb"],
+    "transformers": [
+        {
+            "file": "transformer1.rb",
+            "data_type": "simple-licence",
+            "identifying_fields": ["licence_number"]
+        }
+    ]
 }

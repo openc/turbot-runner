@@ -126,6 +126,14 @@ describe TurbotRunner::Runner do
         @runner.run
         expect([@runner, 'scraper']).to have_error_output_matching(/Oh no/)
       end
+
+      it 'still runs the transformers' do
+        expect(@runner).to receive(:run_script).once.with(
+          hash_including(:file=>"scraper.rb"))
+        expect(@runner).to receive(:run_script).once.with(
+          hash_including(:file=>"transformer1.rb"), anything)
+        @runner.run
+      end
     end
 
     context 'with a bot that crashes in transformer' do
