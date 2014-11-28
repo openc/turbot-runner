@@ -33,6 +33,30 @@ module TurbotRunner
     end
 
     private
+    def full_ruby_path
+      begin
+        # Ruby > 1.9
+        ruby = RbConfig.ruby
+      rescue NameError
+        require 'rbconfig'
+        ruby = File.join(Config::CONFIG["bindir"],
+          Config::CONFIG["RUBY_INSTALL_NAME"]+
+          Config::CONFIG["EXEEXT"])
+      end
+      ruby
+    end
+
+    def full_interpreter_path
+      if language == "ruby"
+        # Ensure we use the same ruby as the current interpreter when
+        # creating a subshell. Necessary for OSX packaged version.
+        full_ruby_path
+      else
+        # Assume the first python in PATH
+        language
+      end
+    end
+
     def load_config(directory)
       manifest_path = File.join(directory, 'manifest.json')
       raise "Could not find #{manifest_path}" unless File.exist?(manifest_path)
@@ -77,7 +101,7 @@ module TurbotRunner
     def build_command(script, input_file=nil)
       raise "Could not run #{script} with #{language}" unless script_extension == File.extname(script)
       path_to_script = File.join(@directory, script)
-      command = "#{language} #{additional_args} #{path_to_script} >#{output_file(script)}"
+      command = "#{full_interpreter_path} #{additional_args} #{path_to_script} >#{output_file(script)}"
       command << " 2>#{output_file(script, '.err')}" if @log_to_file
       command << " <#{input_file}" unless input_file.nil?
 
