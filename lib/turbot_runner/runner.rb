@@ -33,24 +33,11 @@ module TurbotRunner
     end
 
     private
-    def full_ruby_path
-      begin
-        # Ruby > 1.9
-        ruby = RbConfig.ruby
-      rescue NameError
-        require 'rbconfig'
-        ruby = File.join(Config::CONFIG["bindir"],
-          Config::CONFIG["RUBY_INSTALL_NAME"]+
-          Config::CONFIG["EXEEXT"])
-      end
-      ruby
-    end
-
     def full_interpreter_path
       if language == "ruby"
         # Ensure we use the same ruby as the current interpreter when
         # creating a subshell. Necessary for OSX packaged version.
-        full_ruby_path
+        RbConfig.ruby
       else
         # Assume the first python in PATH
         language
