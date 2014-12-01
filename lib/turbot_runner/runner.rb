@@ -35,9 +35,10 @@ module TurbotRunner
     private
     def full_interpreter_path
       if language == "ruby"
-        # Ensure we use the same ruby as the current interpreter when
-        # creating a subshell. Necessary for OSX packaged version.
-        RbConfig.ruby
+        # Ensure we use the same ruby and LOAD_PATH as the current
+        # interpreter when creating a subshell. Necessary for OSX
+        # packaged version.
+        "RUBYLIB='#{$LOAD_PATH.join("\n")}' #{RbConfig.ruby}"
       else
         # Assume the first python in PATH
         language
