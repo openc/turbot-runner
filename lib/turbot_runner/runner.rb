@@ -15,6 +15,7 @@ module TurbotRunner
     end
 
     def run
+      FileUtils.rm_rf(@output_directory)
       FileUtils.mkdir_p(@output_directory)
       succeeded = run_script(scraper_config)
       # Run the transformers even if the scraper fails
