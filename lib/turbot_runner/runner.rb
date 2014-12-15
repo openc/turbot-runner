@@ -84,6 +84,7 @@ module TurbotRunner
           processor.process(line)
         end
       end
+    rescue Errno::ENOENT
     end
 
     def build_command(script, input_file=nil)

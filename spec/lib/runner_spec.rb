@@ -219,11 +219,6 @@ describe TurbotRunner::Runner do
 
   describe '#process_output' do
     before do
-      # This creates the output to work with
-      TurbotRunner::Runner.new('spec/bots/bot-with-transformer').run
-    end
-
-    it 'calls handler once for each line of output' do
       class Handler < TurbotRunner::BaseHandler
         attr_reader :records_seen
 
@@ -237,15 +232,31 @@ describe TurbotRunner::Runner do
         end
       end
 
-      handler = Handler.new
+      @handler = Handler.new
+    end
+
+    it 'calls handler once for each line of output' do
+      TurbotRunner::Runner.new('spec/bots/bot-with-transformer').run
+
       runner = TurbotRunner::Runner.new(
         'spec/bots/bot-with-transformer',
-        :record_handler => handler
+        :record_handler => @handler
       )
 
       runner.process_output
-      expect(handler.records_seen['primary data']).to eq(10)
-      expect(handler.records_seen['simple-licence']).to eq(10)
+      expect(@handler.records_seen['primary data']).to eq(10)
+      expect(@handler.records_seen['simple-licence']).to eq(10)
+    end
+
+    it 'can cope when scraper has failed immediately' do
+      TurbotRunner::Runner.new('spec/bots/bot-that-crashes-immediately').run
+
+      runner = TurbotRunner::Runner.new(
+        'spec/bots/bot-with-transformer',
+        :record_handler => @handler
+      )
+
+      runner.process_output
     end
   end
 end
