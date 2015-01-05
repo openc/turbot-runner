@@ -259,6 +259,26 @@ describe TurbotRunner::Runner do
       runner.process_output
     end
   end
+
+  describe '#set_up_output_directory' do
+    before do
+      @runner = TurbotRunner::Runner.new('spec/bots/bot-with-transformer')
+    end
+
+    it 'clears existing output' do
+      path = File.join(@runner.directory, 'output', 'scraper.out')
+      FileUtils.touch(path)
+      @runner.set_up_output_directory
+      expect(File.exist?(path)).to be(false)
+    end
+
+    it 'does not clear existing files that are not output files' do
+      path = File.join(@runner.directory, 'output', 'stdout')
+      FileUtils.touch(path)
+      @runner.set_up_output_directory
+      expect(File.exist?(path)).to be(true)
+    end
+  end
 end
 
 

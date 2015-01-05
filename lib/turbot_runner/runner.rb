@@ -15,14 +15,26 @@ module TurbotRunner
     end
 
     def run
-      FileUtils.rm_rf(@output_directory)
-      FileUtils.mkdir_p(@output_directory)
+      set_up_output_directory
+
       succeeded = run_script(scraper_config)
       # Run the transformers even if the scraper fails
       transformers.each do |transformer_config|
         succeeded = run_script(transformer_config, input_file=scraper_output_file) && succeeded
       end
       succeeded
+    end
+
+    def set_up_output_directory
+      FileUtils.mkdir_p(@output_directory)
+
+      FileUtils.rm_f(File.join(@output_directory, 'scraper.out'))
+      FileUtils.rm_f(File.join(@output_directory, 'scraper.err'))
+
+      transformers.each do |transformer_config|
+        FileUtils.rm_f(File.join(@output_directory, "#{transformer_config[:file]}.out"))
+        FileUtils.rm_f(File.join(@output_directory, "#{transformer_config[:file]}.err"))
+      end
     end
 
     def process_output
