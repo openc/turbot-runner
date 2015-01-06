@@ -1,17 +1,18 @@
 require 'json'
 require 'fileutils'
+require 'pathname'
 
 module TurbotRunner
   class Runner
-    attr_reader :directory
+    attr_reader :base_directory
 
     def initialize(directory, options={})
-      @directory = directory
+      @base_directory = directory
       @config = load_config(directory)
       @record_handler = options[:record_handler]
       @log_to_file = options[:log_to_file]
       @timeout = options[:timeout]
-      @output_directory = options[:output_directory] || File.join(@directory, 'output')
+      @output_directory = options[:output_directory] || File.join(@base_directory, 'output')
     end
 
     def run
@@ -20,14 +21,15 @@ module TurbotRunner
       succeeded = run_script(scraper_config)
       # Run the transformers even if the scraper fails
       transformers.each do |transformer_config|
-        succeeded = run_script(transformer_config, input_file=scraper_output_file) && succeeded
+        succeeded = run_script(
+          transformer_config.merge(:base_directory => @base_directory),
+          input_file=scraper_output_file) && succeeded
       end
       succeeded
     end
 
     def set_up_output_directory
       FileUtils.mkdir_p(@output_directory)
-
       FileUtils.rm_f(File.join(@output_directory, 'scraper.out'))
       FileUtils.rm_f(File.join(@output_directory, 'scraper.err'))
 
@@ -41,7 +43,7 @@ module TurbotRunner
       process_script_output(scraper_config)
 
       transformers.each do |transformer_config|
-        process_script_output(transformer_config)
+        process_script_output(transformer_config.merge(:base_directory => @base_directory))
       end
     end
 
@@ -70,9 +72,9 @@ module TurbotRunner
       end
     end
 
+
     def run_script(script_config, input_file=nil)
       command = build_command(script_config[:file], input_file)
-
       script_runner = ScriptRunner.new(
         command,
         output_file(script_config[:file]),
@@ -90,8 +92,8 @@ module TurbotRunner
       # (e.g. interruptions etc) is required; we just want to do
       # record handling.
       processor = Processor.new(nil, script_config, @record_handler)
-
-      File.open(output_file(script_config[:file])) do |f|
+      file = File.join(script_config[:base_directory], output_file(script_config[:file]))
+      File.open(file) do |f|
         f.each_line do |line|
           processor.process(line)
         end
@@ -101,17 +103,33 @@ module TurbotRunner
 
     def build_command(script, input_file=nil)
       raise "Could not run #{script} with #{language}" unless script_extension == File.extname(script)
-      path_to_script = File.join(@directory, script)
-      command = "#{full_interpreter_path} #{additional_args} #{path_to_script} >#{output_file(script)}"
+      command = "#{full_interpreter_path} #{additional_args} #{script} >#{output_file(script)}"
       command << " 2>#{output_file(script, '.err')}" if @log_to_file
       command << " <#{input_file}" unless input_file.nil?
-
       command
     end
 
     def output_file(script, extension='.out')
       basename = File.basename(script, script_extension)
-      File.join(@output_directory, basename) + extension
+      File.join(basepath_for_subprocess, basename) + extension
+    end
+
+    def basepath_for_subprocess
+      basepath = Pathname.new(@output_directory)
+      unless basepath.absolute?
+        # For the purposes of running a command from a subprocess, a
+        # relative output directory should be relative to the bot's
+        # base directory.
+        #
+        # This is because in the subprocess, we set the output
+        # directory to be the working directly of the script; output
+        # is saved to files with stream redirection relative to this
+        # location.
+        #
+        # For absolute paths, this doesn't matter.
+        basepath = basepath.relative_path_from(Pathname.new(@base_directory))
+      end
+      basepath.to_s
     end
 
     def script_extension
@@ -130,6 +148,7 @@ module TurbotRunner
 
     def scraper_config
       {
+        :base_directory => @base_directory,
         :file => scraper_script,
         :data_type => scraper_data_type,
         :identifying_fields => scraper_identifying_fields
@@ -145,7 +164,7 @@ module TurbotRunner
     end
 
     def scraper_output_file
-      File.join(@output_directory, 'scraper.out')
+      File.join(basepath_for_subprocess, 'scraper.out')
     end
 
     def language

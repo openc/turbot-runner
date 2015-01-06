@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-that-expects-file",
+    "description": "This bot depends on being able to open a file in the current directory",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb", "something.txt"]
+}

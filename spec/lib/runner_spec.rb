@@ -136,6 +136,19 @@ describe TurbotRunner::Runner do
       end
     end
 
+    context 'with a bot that expects a file to be present in the working directory' do
+      before do
+        @runner = TurbotRunner::Runner.new(
+          'spec/bots/bot-that-expects-file',
+          :log_to_file => true
+        )
+      end
+
+      it 'returns true' do
+        expect(@runner.run).to be(true)
+      end
+    end
+
     context 'with a bot that crashes in transformer' do
       before do
         @runner = TurbotRunner::Runner.new(
@@ -206,6 +219,11 @@ describe TurbotRunner::Runner do
     end
 
     context 'with a scraper that hangs' do
+      # XXX This spec fails because the loop in ScriptRunner#run that
+      # reads lines from the output file doesn't start until the
+      # output file is created; however, the way we're redirecting
+      # stdout using the shell means the file doesn't get created
+      # until
       it 'returns false' do
         @runner = TurbotRunner::Runner.new(
           'spec/bots/bot-with-pause',
@@ -266,14 +284,14 @@ describe TurbotRunner::Runner do
     end
 
     it 'clears existing output' do
-      path = File.join(@runner.directory, 'output', 'scraper.out')
+      path = File.join(@runner.base_directory, 'output', 'scraper.out')
       FileUtils.touch(path)
       @runner.set_up_output_directory
       expect(File.exist?(path)).to be(false)
     end
 
     it 'does not clear existing files that are not output files' do
-      path = File.join(@runner.directory, 'output', 'stdout')
+      path = File.join(@runner.base_directory, 'output', 'stdout')
       FileUtils.touch(path)
       @runner.set_up_output_directory
       expect(File.exist?(path)).to be(true)
@@ -288,7 +306,7 @@ RSpec::Matchers.define :have_output do |expected|
 
     expected_path = File.join('spec', 'outputs', expected)
     expected_output = File.readlines(expected_path).map {|line| JSON.parse(line)}
-    actual_path = File.join(runner.directory, 'output', "#{script}.out")
+    actual_path = File.join(runner.base_directory, 'output', "#{script}.out")
     actual_output = File.readlines(actual_path).map {|line| JSON.parse(line)}
     expect(expected_output).to eq(actual_output)
   end
@@ -299,7 +317,7 @@ RSpec::Matchers.define :have_error_output_matching do |expected|
   match do |actual|
     runner, script = actual
 
-    actual_path = File.join(runner.directory, 'output', "#{script}.err")
+    actual_path = File.join(runner.base_directory, 'output', "#{script}.err")
     actual_output = File.read(actual_path)
     expect(actual_output).to match(expected)
   end
