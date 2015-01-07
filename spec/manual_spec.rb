@@ -18,7 +18,8 @@ eos
 
 gets
 
-runner = TurbotRunner::Runner.new('spec/bots/logging-bot').run
+bot_location = File.join(File.dirname(__FILE__), 'bots/logging-bot')
+runner = TurbotRunner::Runner.new(bot_location).run
 
 puts
 puts 'Did you see the expected lines? [y]/n'
@@ -38,7 +39,8 @@ eos
 
 gets
 
-runner = TurbotRunner::Runner.new('spec/bots/bot-with-pause').run
+bot_location = File.join(File.dirname(__FILE__), 'bots/bot-with-pause')
+runner = TurbotRunner::Runner.new(bot_location).run
 
 expected_output = File.readlines('spec/outputs/truncated-scraper.out').map {|line| JSON.parse(line)}
 actual_output = File.readlines('spec/bots/bot-with-pause/output/scraper.out').map {|line| JSON.parse(line)}
