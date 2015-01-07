@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-with-invalid-sample-date",
+    "description": "This bot produces data with an invalid sample date",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

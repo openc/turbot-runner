@@ -215,6 +215,16 @@ describe TurbotRunner::Runner do
         expect(@runner.run).to be(false)
       end
     end
+
+    context 'with a bot that emits an invalid sample date' do
+      before do
+        @runner = TurbotRunner::Runner.new('spec/bots/bot-with-invalid-sample-date')
+      end
+
+      it 'returns false' do
+        expect(@runner.run).to be(true)
+      end
+    end
   end
 
   describe '#process_output' do
