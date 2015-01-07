@@ -7,12 +7,18 @@ module TurbotRunner
     attr_reader :base_directory
 
     def initialize(directory, options={})
+      assert_absolute_path(directory)
       @base_directory = directory
       @config = load_config(directory)
       @record_handler = options[:record_handler]
       @log_to_file = options[:log_to_file]
       @timeout = options[:timeout]
-      @output_directory = options[:output_directory] || File.join(@base_directory, 'output')
+      if options[:output_directory]
+        assert_absolute_path(options[:output_directory])
+        @output_directory = options[:output_directory]
+      else
+        @output_directory = File.join(@base_directory, 'output')
+      end
     end
 
     def run
@@ -92,7 +98,7 @@ module TurbotRunner
       # (e.g. interruptions etc) is required; we just want to do
       # record handling.
       processor = Processor.new(nil, script_config, @record_handler)
-      file = File.join(script_config[:base_directory], output_file(script_config[:file]))
+      file = output_file(script_config[:file])
       File.open(file) do |f|
         f.each_line do |line|
           processor.process(line)
@@ -111,25 +117,7 @@ module TurbotRunner
 
     def output_file(script, extension='.out')
       basename = File.basename(script, script_extension)
-      File.join(basepath_for_subprocess, basename) + extension
-    end
-
-    def basepath_for_subprocess
-      basepath = Pathname.new(@output_directory)
-      unless basepath.absolute?
-        # For the purposes of running a command from a subprocess, a
-        # relative output directory should be relative to the bot's
-        # base directory.
-        #
-        # This is because in the subprocess, we set the output
-        # directory to be the working directly of the script; output
-        # is saved to files with stream redirection relative to this
-        # location.
-        #
-        # For absolute paths, this doesn't matter.
-        basepath = basepath.relative_path_from(Pathname.new(@base_directory))
-      end
-      basepath.to_s
+      File.join(@output_directory, basename) + extension
     end
 
     def script_extension
@@ -164,7 +152,7 @@ module TurbotRunner
     end
 
     def scraper_output_file
-      File.join(basepath_for_subprocess, 'scraper.out')
+      File.join(@output_directory, 'scraper.out')
     end
 
     def language
@@ -177,6 +165,12 @@ module TurbotRunner
 
     def scraper_identifying_fields
       @config[:identifying_fields]
+    end
+
+    def assert_absolute_path(path)
+      unless Pathname.new(path).absolute?
+        raise "#{path} must be an absolute path"
+      end
     end
   end
 end
