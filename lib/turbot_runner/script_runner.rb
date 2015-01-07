@@ -83,12 +83,7 @@ module TurbotRunner
 
     private
     def run_command(command)
-      # set the working directory to the location of the command
-      #`echo #{command} > /tmp/commands`
-        `echo pwd: $(pwd) >> /tmp/commands`
-        `echo "command =: #{command}" >> /tmp/commands`
-        system(command)
-
+      system(command)
       # A nil exitstatus indicates that the script was interrupted.  A
       # termsig of 2 indicates that the script was interrupted by a SIGINT.
       $?.exitstatus == 0 || ($?.exitstatus.nil? && $?.termsig == 2)
