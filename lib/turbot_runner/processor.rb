@@ -17,16 +17,16 @@ module TurbotRunner
           @runner.interrupt if @runner
         else
           record = JSON.parse(line)
-          errors = validate(record)
+          error_message = validate(record)
 
-          if errors.empty?
+          if error_message.nil?
             begin
               @record_handler.handle_valid_record(record, @data_type)
             rescue InterruptRun
               @runner.interrupt if @runner
             end
           else
-            @record_handler.handle_invalid_record(record, @data_type, errors)
+            @record_handler.handle_invalid_record(record, @data_type, error_message)
             @runner.interrupt_and_mark_as_failed if @runner
           end
         end
@@ -41,27 +41,40 @@ module TurbotRunner
     end
 
     def validate(record)
-      errors = JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
-      messages = errors.map do |error|
-        case error[:message]
-        when /The property '#\/' did not contain a required property of '(\w+)'/
-          "Missing required attribute: #{Regexp.last_match(1)}"
-        else
-          error[:message]
-        end
-      end
+      error = TurbotRunner::Validator.validate(schema, record)
 
-      if messages.empty?
+      message = nil
+
+      if error.nil?
         identifying_attributes = record.reject do |k, v|
           !@identifying_fields.include?(k) || v.nil? || v == ''
         end
 
         if identifying_attributes.empty?
-          messages << "There were no values provided for any of the identifying fields: #{@identifying_fields.join(', ')}"
+          message = "There were no values provided for any of the identifying fields: #{@identifying_fields.join(', ')}"
+        end
+      else
+        message = case error[:type]
+        when :missing
+          "Missing required property: #{error[:path]}"
+        when :one_of_no_matches
+          "No match for property: #{error[:path]}"
+        when :one_of_many_matches
+          "Multiple possible matches for property: #{error[:path]}"
+        when :too_short
+          "Property too short: #{error[:path]} (must be at least #{error[:length]} characters)"
+        when :too_long
+          "Property too long: #{error[:path]} (must be at most #{error[:length]} characters)"
+        when :type_mismatch
+          "Property of wrong type: #{error[:path]} (must be of type #{error[:allowed_types].join(', ')})"
+        when :enum_mismatch
+          "Property not an allowed value #{error[:path]} (must be one of#{error[:allowed_values].join(', ')})"
+        when :unknown
+          error[:message]
         end
       end
 
-      messages
+      message
     end
 
     def schema

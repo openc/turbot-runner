@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     turbot-runner (0.1.19)
-      json-schema (~> 2.4)
+      json-schema (= 2.5.0)
 
 GEM
   remote: https://rubygems.org/

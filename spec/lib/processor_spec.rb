@@ -26,9 +26,9 @@ describe TurbotRunner::Processor do
         end
 
         it 'calls Handler#handle_invalid_record' do
-          expected_errors = ['Missing required attribute: source_url']
+          expected_error = 'Missing required property: source_url'
           expect(@handler).to receive(:handle_invalid_record).
-            with(@record, @data_type, expected_errors)
+            with(@record, @data_type, expected_error)
           @processor.process(@record.to_json)
         end
       end
@@ -62,9 +62,9 @@ describe TurbotRunner::Processor do
         end
 
         it 'calls Handler#handle_invalid_record' do
-          expected_errors = ['Missing required attribute: source_url']
+          expected_error = 'Missing required property: source_url'
           expect(@handler).to receive(:handle_invalid_record).
-            with(@record, @data_type, expected_errors)
+            with(@record, @data_type, expected_error)
           @processor.process(@record.to_json)
         end
       end
@@ -78,9 +78,9 @@ describe TurbotRunner::Processor do
         end
 
         it 'calls Handler#handle_invalid_record' do
-          expected_errors = ['There were no values provided for any of the identifying fields: number']
+          expected_error = 'There were no values provided for any of the identifying fields: number'
           expect(@handler).to receive(:handle_invalid_record).
-            with(@record, @data_type, expected_errors)
+            with(@record, @data_type, expected_error)
           @processor.process(@record.to_json)
         end
       end
