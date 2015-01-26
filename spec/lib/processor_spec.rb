@@ -134,7 +134,7 @@ describe TurbotRunner::Processor do
             'number' => 123
           }
 
-          expected_error = 'Property not a valid date: sample_date'
+          expected_error = 'Missing required property: sample_date'
           expect(@handler).to receive(:handle_invalid_record).
             with(record, @data_type, expected_error)
           @processor.process(record.to_json)
@@ -154,6 +154,50 @@ describe TurbotRunner::Processor do
             with(record, @data_type, expected_error)
           @processor.process(record.to_json)
         end
+      end
+    end
+  end
+
+  describe '#convert_record' do
+    before do
+      schema = {
+        '$schema' => 'http://json-schema.org/draft-04/schema#',
+        'type' => 'object',
+        'properties' => {
+          'aaa' => {'format' => 'date'},
+          'bbb' => {'format' => 'not-date'},
+        }
+      }
+
+      @processor = TurbotRunner::Processor.new(nil, {}, nil)
+      allow(@processor).to receive(:schema).and_return(schema)
+    end
+
+    context 'when date field is YYYY-MM-DD' do
+      it 'leaves date field alone' do
+        record = {'aaa' => '2015-01-26', 'bbb' => 'cabbage'}
+        expect(@processor.convert_record(record)).to eq({'aaa' => '2015-01-26', 'bbb' => 'cabbage'})
+      end
+    end
+
+    context 'when date field with YYYY-MM-DD HH:MM:SS' do
+      it 'replaces value with YYYY-MM-DD' do
+        record = {'aaa' => '2015-01-26 12:34:56', 'bbb' => 'cabbage'}
+        expect(@processor.convert_record(record)).to eq({'aaa' => '2015-01-26', 'bbb' => 'cabbage'})
+      end
+    end
+
+    context 'when date field is empty string' do
+      it 'replaces removes field' do
+        record = {'aaa' => '', 'bbb' => 'cabbage'}
+        expect(@processor.convert_record(record)).to eq({'bbb' => 'cabbage'})
+      end
+    end
+
+    context 'when date field is invalid date' do
+      it 'rasies ConversionError' do
+        record = {'aaa' => 'cabbage', 'bbb' => 'cabbage'}
+        expect{@processor.convert_record(record)}.to raise_error(TurbotRunner::Processor::ConversionError)
       end
     end
   end

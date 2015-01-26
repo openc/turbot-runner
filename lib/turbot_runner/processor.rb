@@ -64,10 +64,14 @@ module TurbotRunner
 
         next unless value.is_a?(String)
 
-        begin
-          tmp[path[-1]] = Date.strptime(value, '%Y-%m-%d').strftime('%Y-%m-%d')
-        rescue ArgumentError
-          raise ConversionError.new("Property not a valid date: #{path.join('.')}")
+        if value == ''
+          tmp.delete(path[-1])
+        else
+          begin
+            tmp[path[-1]] = Date.strptime(value, '%Y-%m-%d').strftime('%Y-%m-%d')
+          rescue ArgumentError
+            raise ConversionError.new("Property not a valid date: #{path.join('.')}")
+          end
         end
       end
 
