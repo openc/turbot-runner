@@ -59,7 +59,11 @@ module TurbotRunner
         allowed_values = match[1].split(',').map(&:strip)
         {:type => :enum_mismatch, :path => fragment_to_path(error[:fragment]), :allowed_values => allowed_values}
       else
-        {:type => :unknown, :path => fragment_to_path(error[:fragment]), :failed_attribute => error[:failed_attribute], :message => error[:message]}
+        if error[:message].match(/must be of format yyyy-mm-dd/)
+          {:type => :format_mismatch, :path => fragment_to_path(error[:fragment]), :expected_format => 'yyyy-mm-dd'}
+        else
+          {:type => :unknown, :path => fragment_to_path(error[:fragment]), :failed_attribute => error[:failed_attribute], :message => error[:message]}
+        end
       end
     end
 

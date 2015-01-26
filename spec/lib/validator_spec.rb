@@ -1,4 +1,4 @@
-require 'turbot_runner'
+require 'spec_helper'
 
 describe TurbotRunner::Validator do
   describe 'validation' do
@@ -231,23 +231,5 @@ describe TurbotRunner::Validator do
         :allowed_values => ['a', 'b', 'c']
       )
     end
-  end
-end
-
-RSpec::Matchers.define(:fail_validation_with) do |expected|
-  match do |actual|
-    schema, record = actual
-
-    error = TurbotRunner::Validator.validate(schema, record)
-    expect(error).to eq(expected)
-  end
-end
-
-RSpec::Matchers.define(:be_valid) do
-  match do |actual|
-    schema, record = actual
-
-    error = TurbotRunner::Validator.validate(schema, record)
-    expect(error).to eq(nil)
   end
 end
