@@ -223,7 +223,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns false' do
-        expect(@runner.run).to be(true)
+        expect(@runner.run).to be(false)
       end
     end
   end

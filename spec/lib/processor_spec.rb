@@ -26,9 +26,9 @@ describe TurbotRunner::Processor do
         end
 
         it 'calls Handler#handle_invalid_record' do
-          expected_errors = ['Missing required attribute: source_url']
+          expected_error = 'Missing required property: source_url'
           expect(@handler).to receive(:handle_invalid_record).
-            with(@record, @data_type, expected_errors)
+            with(@record, @data_type, expected_error)
           @processor.process(@record.to_json)
         end
       end
@@ -62,9 +62,9 @@ describe TurbotRunner::Processor do
         end
 
         it 'calls Handler#handle_invalid_record' do
-          expected_errors = ['Missing required attribute: source_url']
+          expected_error = 'Missing required property: source_url'
           expect(@handler).to receive(:handle_invalid_record).
-            with(@record, @data_type, expected_errors)
+            with(@record, @data_type, expected_error)
           @processor.process(@record.to_json)
         end
       end
@@ -78,9 +78,9 @@ describe TurbotRunner::Processor do
         end
 
         it 'calls Handler#handle_invalid_record' do
-          expected_errors = ['There were no values provided for any of the identifying fields: number']
+          expected_error = 'There were no values provided for any of the identifying fields: number'
           expect(@handler).to receive(:handle_invalid_record).
-            with(@record, @data_type, expected_errors)
+            with(@record, @data_type, expected_error)
           @processor.process(@record.to_json)
         end
       end
@@ -92,6 +92,141 @@ describe TurbotRunner::Processor do
           @processor.process(line)
         end
       end
+
+      context 'with record with sample_date from Time.now' do
+        it 'calls Handler#handle_valid_record with converted sample_date' do
+          record = {
+            'sample_date' => '2014-06-01 12:34:56 +0000',
+            'source_url' => 'http://example.com/123',
+            'number' => 123
+          }
+
+          expected_converted_record = {
+            'sample_date' => '2014-06-01',
+            'source_url' => 'http://example.com/123',
+            'number' => 123
+          }
+          expect(@handler).to receive(:handle_valid_record).
+            with(expected_converted_record, @data_type)
+          @processor.process(record.to_json)
+        end
+      end
+
+      context 'with record with missing sample_date' do
+        it 'calls Handler#handle_invalid_record' do
+          record = {
+            'source_url' => 'http://example.com/123',
+            'number' => 123
+          }
+
+          expected_error = 'Missing required property: sample_date'
+          expect(@handler).to receive(:handle_invalid_record).
+            with(record, @data_type, expected_error)
+          @processor.process(record.to_json)
+        end
+      end
+
+      context 'with record with empty sample_date' do
+        it 'calls Handler#handle_invalid_record' do
+          record = {
+            'sample_date' => '',
+            'source_url' => 'http://example.com/123',
+            'number' => 123
+          }
+
+          expected_error = 'Missing required property: sample_date'
+          expect(@handler).to receive(:handle_invalid_record).
+            with(record, @data_type, expected_error)
+          @processor.process(record.to_json)
+        end
+      end
+
+      context 'with record with invalid sample_date' do
+        it 'calls Handler#handle_invalid_record' do
+          record = {
+            'sample_date' => '2014-06-00',
+            'source_url' => 'http://example.com/123',
+            'number' => 123
+          }
+
+          expected_error = 'Property not a valid date: sample_date'
+          expect(@handler).to receive(:handle_invalid_record).
+            with(record, @data_type, expected_error)
+          @processor.process(record.to_json)
+        end
+      end
     end
+  end
+
+  describe '#convert_record' do
+    before do
+      schema = {
+        '$schema' => 'http://json-schema.org/draft-04/schema#',
+        'type' => 'object',
+        'properties' => {
+          'aaa' => {'format' => 'date'},
+          'bbb' => {'format' => 'not-date'},
+        }
+      }
+
+      @processor = TurbotRunner::Processor.new(nil, {}, nil)
+      allow(@processor).to receive(:schema).and_return(schema)
+    end
+
+    context 'when date field is YYYY-MM-DD' do
+      it 'leaves date field alone' do
+        record = {'aaa' => '2015-01-26', 'bbb' => 'cabbage'}
+        expect(@processor.convert_record(record)).to eq({'aaa' => '2015-01-26', 'bbb' => 'cabbage'})
+      end
+    end
+
+    context 'when date field with YYYY-MM-DD HH:MM:SS' do
+      it 'replaces value with YYYY-MM-DD' do
+        record = {'aaa' => '2015-01-26 12:34:56', 'bbb' => 'cabbage'}
+        expect(@processor.convert_record(record)).to eq({'aaa' => '2015-01-26', 'bbb' => 'cabbage'})
+      end
+    end
+
+    context 'when date field is empty string' do
+      it 'replaces removes field' do
+        record = {'aaa' => '', 'bbb' => 'cabbage'}
+        expect(@processor.convert_record(record)).to eq({'bbb' => 'cabbage'})
+      end
+    end
+
+    context 'when date field is invalid date' do
+      it 'rasies ConversionError' do
+        record = {'aaa' => 'cabbage', 'bbb' => 'cabbage'}
+        expect{@processor.convert_record(record)}.to raise_error(TurbotRunner::Processor::ConversionError)
+      end
+    end
+  end
+
+  specify '#get_date_paths' do
+    schema = {
+      '$schema' => 'http://json-schema.org/draft-04/schema#',
+      'type' => 'object',
+      'properties' => {
+        'aaa' => {'format' => 'date'},
+        'bbb' => {'format' => 'not-date'},
+        'ccc' => {
+          'type' => 'object',
+          'properties' => {
+            'ddd' => {'format' => 'date'},
+            'eee' => {'format' => 'not-date'},
+            'fff' => {
+              'type' => 'object',
+              'properties' => {
+                'ggg' => {'format' => 'date'},
+                'hhh' => {'format' => 'not-date'},
+              }
+            }
+          }
+        }
+      }
+    }
+
+    processor = TurbotRunner::Processor.new(nil, {}, nil)
+    expect(processor.get_date_paths(schema['properties'])).to eq([['aaa'], ['ccc', 'ddd'], ['ccc', 'fff', 'ggg']])
   end
 end
