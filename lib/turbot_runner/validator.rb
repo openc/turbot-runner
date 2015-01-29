@@ -5,8 +5,11 @@ module TurbotRunner
     extend self
 
     def validate(schema, record)
-      errors = JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
-      
+      # We must change directory for the relative paths in schemas to make sense.
+      errors = Dir.chdir(SCHEMAS_PATH) do
+        JSON::Validator.fully_validate(schema, record, :errors_as_objects => true)
+      end
+
       # For now, we just handle the first error.
       error = errors[0]
       return if error.nil?

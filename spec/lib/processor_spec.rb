@@ -156,6 +156,37 @@ describe TurbotRunner::Processor do
         end
       end
     end
+
+    it 'can handle schemas with $refs' do
+      handler = TurbotRunner::BaseHandler.new
+      script_config = {
+        :data_type => 'rich-licence',
+        :identifying_fields => ['licence_number']
+      }
+
+      script_runner = instance_double('ScriptRunner')
+      allow(script_runner).to receive(:interrupt_and_mark_as_failed)
+      processor = TurbotRunner::Processor.new(script_runner, script_config, handler)
+
+      record = {
+        :licence_holder => {
+          :entity_type => 'company',
+          :entity_properties => {
+            :name => 'Hairy Goat Breeding Ltd',
+            :jurisdiction_code => 'gb',
+          }
+        },
+        :licence_number => '1234',
+        :permissions => ['Goat breeding'],
+        :licence_issuer => 'Sheep and Goat Board of Bermuda',
+        :jurisdiction_of_licence => 'bm',
+        :source_url => 'http://example.com',
+        :sample_date => '2015-01-01'
+      }
+
+      expect(handler).to receive(:handle_valid_record)
+      processor.process(record.to_json)
+    end
   end
 
   describe '#convert_record' do

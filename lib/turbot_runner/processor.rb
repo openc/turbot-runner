@@ -143,7 +143,7 @@ module TurbotRunner
 
     def load_schema
       hyphenated_name = @data_type.to_s.gsub("_", "-").gsub(" ", "-")
-      path = File.expand_path("../../../schema/schemas/#{hyphenated_name}-schema.json", __FILE__)
+      path = File.join(SCHEMAS_PATH, "#{hyphenated_name}-schema.json")
       JSON.load(File.read(path))
     end
 
