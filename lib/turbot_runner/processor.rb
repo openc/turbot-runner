@@ -1,5 +1,4 @@
-require 'json'
-require 'json-schema'
+require 'openc/json_schema'
 
 module TurbotRunner
   class Processor
@@ -16,18 +15,13 @@ module TurbotRunner
           @record_handler.handle_run_ended
           @runner.interrupt if @runner
         else
-          record = JSON.parse(line)
+          record = Openc::JsonSchema.convert_dates(schema_path, JSON.parse(line))
 
-          begin
-            converted_record = convert_record(record)
-            error_message = validate(converted_record)
-          rescue ConversionError => e
-            error_message = e.message
-          end
+          error_message = validate(record)
 
           if error_message.nil?
             begin
-              @record_handler.handle_valid_record(converted_record, @data_type)
+              @record_handler.handle_valid_record(record, @data_type)
             rescue InterruptRun
               @runner.interrupt if @runner
             end
@@ -46,60 +40,8 @@ module TurbotRunner
       @runner.interrupt
     end
 
-    def convert_record(record)
-      converted_record = Utils.deep_copy(record)
-
-      date_paths.each do |path|
-        begin
-          tmp = converted_record
-
-          path[0...-1].each do |path_item|
-            tmp = tmp[path_item]
-          end
-
-          value = tmp[path[-1]]
-        rescue NoMethodError
-          next
-        end
-
-        next unless value.is_a?(String)
-
-        if value == ''
-          tmp.delete(path[-1])
-        else
-          begin
-            tmp[path[-1]] = Date.strptime(value, '%Y-%m-%d').strftime('%Y-%m-%d')
-          rescue ArgumentError
-            raise ConversionError.new("Property not a valid date: #{path.join('.')}")
-          end
-        end
-      end
-
-      converted_record
-    end
-
-    def date_paths
-      @date_paths ||= get_date_paths(schema['properties'])
-    end
-
-    def get_date_paths(properties)
-      date_paths = []
-
-      properties.each do |name, attrs|
-        if attrs['format'] == 'date'
-          date_paths << [name]
-        elsif attrs['type'] == 'object'
-          get_date_paths(attrs['properties']).each do |path|
-            date_paths << [name] + path
-          end
-        end
-      end
-
-      date_paths
-    end
-
     def validate(record)
-      error = Validator.validate(schema, record)
+      error = Openc::JsonSchema.validate(schema_path, record)
 
       message = nil
 
@@ -137,14 +79,9 @@ module TurbotRunner
       message
     end
 
-    def schema
-      @schema ||= load_schema
-    end
-
-    def load_schema
+    def schema_path
       hyphenated_name = @data_type.to_s.gsub("_", "-").gsub(" ", "-")
-      path = File.join(SCHEMAS_PATH, "#{hyphenated_name}-schema.json")
-      JSON.load(File.read(path))
+      File.join(SCHEMAS_PATH, "#{hyphenated_name}-schema.json")
     end
 
     class ConversionError < StandardError; end

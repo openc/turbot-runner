@@ -1,13 +1,21 @@
+GIT
+  remote: git://github.com/ruby-json-schema/json-schema.git
+  revision: aded4d798a48545184dae7ae0a3bb41ec2794c88
+  ref: aded4d798a48545184dae7ae0a3bb41ec2794c88
+  specs:
+    json-schema (2.5.0)
+      addressable (~> 2.3)
+
 PATH
   remote: .
   specs:
-    turbot-runner (0.1.23)
-      json-schema (= 2.5.0)
+    turbot-runner (0.1.24)
+      openc-json_schema (= 0.0.5)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.3.6)
+    addressable (2.3.7)
     coderay (1.1.0)
     columnize (0.8.9)
     debugger (1.6.8)
@@ -17,9 +25,8 @@ GEM
     debugger-linecache (1.2.0)
     debugger-ruby_core_source (1.3.5)
     diff-lcs (1.2.5)
-    json-schema (2.5.0)
-      addressable (~> 2.3)
     method_source (0.8.2)
+    openc-json_schema (0.0.5)
     pry (0.10.0)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -43,6 +50,7 @@ PLATFORMS
 
 DEPENDENCIES
   debugger
+  json-schema!
   pry
   rspec (>= 3.0)
   rspec-mocks (>= 3.0)
