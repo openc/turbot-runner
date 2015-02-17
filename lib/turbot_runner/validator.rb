@@ -2,7 +2,8 @@ module TurbotRunner
   module Validator
     extend self
 
-    def validate(schema_path, record, identifying_fields)
+    def validate(data_type, record, identifying_fields)
+      schema_path = TurbotRunner.schema_path(data_type)
       error = Openc::JsonSchema.validate(schema_path, record)
 
       message = nil

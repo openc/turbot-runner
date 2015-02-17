@@ -17,7 +17,7 @@ module TurbotRunner
         else
           record = Openc::JsonSchema.convert_dates(schema_path, JSON.parse(line))
 
-          error_message = Validator.validate(schema_path, record, @identifying_fields)
+          error_message = Validator.validate(@data_type, record, @identifying_fields)
 
           if error_message.nil?
             begin
@@ -41,8 +41,7 @@ module TurbotRunner
     end
 
     def schema_path
-      hyphenated_name = @data_type.to_s.gsub("_", "-").gsub(" ", "-")
-      File.join(SCHEMAS_PATH, "#{hyphenated_name}-schema.json")
+      TurbotRunner.schema_path(@data_type)
     end
   end
 end
