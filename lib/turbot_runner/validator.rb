@@ -9,7 +9,9 @@ module TurbotRunner
       message = nil
 
       if error.nil?
-        identifying_attributes = record.reject do |k, v|
+        flattened_record = TurbotRunner::Utils.flatten(record)
+
+        identifying_attributes = flattened_record.reject do |k, v|
           !identifying_fields.include?(k) || v.nil? || v == ''
         end
 
