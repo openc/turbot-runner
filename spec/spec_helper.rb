@@ -3,7 +3,12 @@ require 'turbot_runner'
 RSpec::Matchers.define(:fail_validation_with) do |expected_error|
   match do |record|
     identifying_fields = ['number']
-    expect(TurbotRunner::Validator.validate('primary-data', record, identifying_fields)).to eq(expected_error)
+    @error = TurbotRunner::Validator.validate('primary-data', record, identifying_fields)
+    expect(@error).to eq(expected_error)
+  end
+
+  failure_message do |actual|
+    "Expected error to be #{expected_error}, but was #{@error}"
   end
 end
 
