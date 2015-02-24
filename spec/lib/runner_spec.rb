@@ -226,6 +226,16 @@ describe TurbotRunner::Runner do
         expect(@runner.run).to be(false)
       end
     end
+
+    context 'with a bot with an invalid data type' do
+      before do
+        @runner = test_runner('bot-with-invalid-data-type')
+      end
+
+      it 'raises InvalidDataType' do
+        expect{@runner.run}.to raise_error(TurbotRunner::InvalidDataType)
+      end
+    end
   end
 
   describe '#process_output' do

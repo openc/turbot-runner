@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-with-invalid-data-type",
+    "description": "This bot has an invalid data type",
+    "language": "ruby",
+    "data_type": "fishmonger licence",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

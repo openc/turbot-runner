@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot-runner (0.1.31)
+    turbot-runner (0.1.32)
       openc-json_schema (= 0.0.9)
 
 GEM
