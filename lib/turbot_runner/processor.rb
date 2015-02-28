@@ -17,7 +17,13 @@ module TurbotRunner
         else
           record = Openc::JsonSchema.convert_dates(schema_path, JSON.parse(line))
 
-          error_message = Validator.validate(@data_type, record, @identifying_fields)
+          record_to_validate = record.select {|k, v| k != 'retrieved_at'}
+
+          error_message = Validator.validate(
+            @data_type,
+            record_to_validate,
+            @identifying_fields
+          )
 
           if error_message.nil?
             begin
