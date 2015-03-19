@@ -24,6 +24,6 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>=1.9.2'
 
-#  gem.add_dependency "activesupport", '~>4.1.0'
+  gem.add_dependency "activesupport", '4.1.4'
   gem.add_dependency "openc-json_schema", '0.0.13'
 end

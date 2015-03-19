@@ -236,6 +236,26 @@ describe TurbotRunner::Runner do
         expect{@runner.run}.to raise_error(TurbotRunner::InvalidDataType)
       end
     end
+
+    context 'with a bot that produces duplicate data' do
+      before do
+        @runner = test_runner('bot-that-produces-duplicates')
+      end
+
+      it 'raises returns false' do
+        expect(@runner.run).to be(false)
+      end
+    end
+
+    context 'with a bot that is expected to produce duplicate data' do
+      before do
+        @runner = test_runner('bot-that-is-allowed-to-produce-duplicates')
+      end
+
+      it 'raises returns false' do
+        expect(@runner.run).to be(true)
+      end
+    end
   end
 
   describe '#process_output' do

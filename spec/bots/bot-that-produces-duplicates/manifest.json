@@ -1,0 +1,8 @@
+{
+    "bot_id": "bot-that-produces-duplicates",
+    "description": "This bot produces duplicates",
+    "language": "ruby",
+    "data_type": "primary data",
+    "identifying_fields": ["licence_number"],
+    "files": ["scraper.rb"]
+}

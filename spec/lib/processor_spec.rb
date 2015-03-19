@@ -142,7 +142,7 @@ describe TurbotRunner::Processor do
         }
 
         expect(TurbotRunner::Validator).to receive(:validate).
-          with('primary data', expected_record_to_validate, ['number'])
+          with('primary data', expected_record_to_validate, ['number'], Set.new)
         @processor.process(record.to_json)
       end
     end
