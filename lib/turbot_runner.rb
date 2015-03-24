@@ -1,3 +1,5 @@
+require 'set'
+
 require 'turbot_runner/base_handler'
 require 'turbot_runner/exceptions'
 require 'turbot_runner/processor'
