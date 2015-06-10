@@ -9,30 +9,40 @@ module TurbotRunner
       schema_path = TurbotRunner.schema_path(data_type)
       error = Openc::JsonSchema.validate(schema_path, record)
 
-      message = error.nil? ? nil : error[:message]
-
-      if message.nil?
-        identifying_hash = identifying_hash(record, identifying_fields)
-        identifying_attributes = identifying_hash.reject {|k, v| v.nil? || v == ''}
-        if identifying_attributes.empty?
-          message = "There were no values provided for any of the identifying fields: #{identifying_fields.join(', ')}"
-        end
+      if error
+        return error[:message]
       end
 
-      if message.nil? && !seen_uids.nil?
+      identifying_hash = identifying_hash(record, identifying_fields)
+      if identifying_hash.nil?
+        return 'The value of an identifying field may not be a hash'
+      end
+
+      identifying_attributes = identifying_hash.reject {|k, v| v.nil? || v == ''}
+      if identifying_attributes.empty?
+        return "There were no values provided for any of the identifying fields: #{identifying_fields.join(', ')}"
+      end
+
+      if !seen_uids.nil?
         record_uid = record_uid(identifying_hash)
         if seen_uids.include?(record_uid)
-          message = "Already seen record with these identifying fields: #{identifying_hash}"
+          return "Already seen record with these identifying fields: #{identifying_hash}"
         else
           seen_uids.add(record_uid)
         end
       end
 
-      message
+      return nil
     end
 
     def identifying_hash(record, identifying_fields)
-      TurbotRunner::Utils.flatten(record).slice(*identifying_fields)
+      flattened = TurbotRunner::Utils.flatten(record)
+      flattened.each do |k, v|
+        identifying_fields.each do |field|
+          return nil if k.start_with?("#{field}.")
+        end
+      end
+      flattened.slice(*identifying_fields)
     end
 
     def record_uid(identifying_hash)
