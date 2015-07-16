@@ -38,12 +38,12 @@ module TurbotRunner
 
     def set_up_output_directory
       FileUtils.mkdir_p(@output_directory)
-      FileUtils.rm_f(File.join(@output_directory, 'scraper.out'))
-      FileUtils.rm_f(File.join(@output_directory, 'scraper.err'))
+      FileUtils.rm_f(output_file('scraper', '.out'))
+      FileUtils.rm_f(output_file('scraper', '.err'))
 
       transformers.each do |transformer_config|
-        FileUtils.rm_f(File.join(@output_directory, "#{transformer_config[:file]}.out"))
-        FileUtils.rm_f(File.join(@output_directory, "#{transformer_config[:file]}.err"))
+        FileUtils.rm_f(output_file(transformer_config[:file], '.out'))
+        FileUtils.rm_f(output_file(transformer_config[:file], '.err'))
       end
     end
 

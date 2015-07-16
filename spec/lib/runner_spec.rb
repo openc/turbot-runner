@@ -2,10 +2,6 @@ require 'json'
 require 'turbot_runner'
 
 describe TurbotRunner::Runner do
-  before(:each) do
-    Dir.glob('spec/bots/**/output/*').each {|f| File.delete(f)}
-  end
-
   after(:all) do
     puts
     puts 'If all specs passed, you should now run `ruby spec/manual_spec.rb`'
