@@ -17,6 +17,7 @@ module TurbotRunner
       @record_handler = options[:record_handler]
       @log_to_file = options[:log_to_file]
       @timeout = options[:timeout]
+      @scraper_provided = options[:scraper_provided]
       if options[:output_directory]
         assert_absolute_path(options[:output_directory])
         @output_directory = options[:output_directory]
@@ -25,10 +26,10 @@ module TurbotRunner
       end
     end
 
-    def run(opts={})
+    def run
       set_up_output_directory
 
-      if opts[:scraper_provided]
+      if @scraper_provided
         scraper_succeeded = true
       else
         scraper_succeeded = run_script(scraper_config)
@@ -55,8 +56,11 @@ module TurbotRunner
 
     def set_up_output_directory
       FileUtils.mkdir_p(@output_directory)
-      FileUtils.rm_f(output_file('scraper', '.out'))
-      FileUtils.rm_f(output_file('scraper', '.err'))
+
+      if !@scraper_provided
+        FileUtils.rm_f(output_file('scraper', '.out'))
+        FileUtils.rm_f(output_file('scraper', '.err'))
+      end
 
       transformers.each do |transformer_config|
         FileUtils.rm_f(output_file(transformer_config[:file], '.out'))

@@ -252,6 +252,32 @@ describe TurbotRunner::Runner do
         expect(@runner).to succeed
       end
     end
+
+    context 'when the scraped data is provided' do
+      before do
+        FileUtils.cp(
+          File.join('spec', 'outputs', 'full-scraper.out'),
+          File.join(File.dirname(__FILE__), '../bots', 'bot-with-transformer', 'output', 'scraper.out')
+        )
+        @runner = test_runner('bot-with-transformer', :scraper_provided => true)
+      end
+
+      it 'does not run scraper' do
+        expect(@runner).to receive(:run_script).once.with(
+          hash_including(:file => 'transformer.rb'), anything
+        )
+        @runner.run
+      end
+
+      it 'succeeds' do
+        expect(@runner).to succeed
+      end
+
+      it 'produces expected transformed output' do
+        @runner.run
+        expect(@runner).to have_output('transformer', 'full-transformer.out')
+      end
+    end
   end
 
   describe '#process_output' do
