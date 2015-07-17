@@ -15,7 +15,7 @@ describe TurbotRunner::Runner do
 
       it 'produces expected output' do
         @runner.run
-        expect([@runner, 'scraper']).to have_output('full-scraper.out')
+        expect(@runner).to have_output('scraper', 'full-scraper.out')
       end
 
       it 'returns true' do
@@ -30,7 +30,7 @@ describe TurbotRunner::Runner do
 
       it 'produces expected output' do
         @runner.run
-        expect([@runner, 'scraper']).to have_output('full-scraper.out')
+        expect(@runner).to have_output('scraper', 'full-scraper.out')
       end
     end
 
@@ -41,8 +41,8 @@ describe TurbotRunner::Runner do
 
       it 'produces expected outputs' do
         @runner.run
-        expect([@runner, 'scraper']).to have_output('full-scraper.out')
-        expect([@runner, 'transformer']).to have_output('full-transformer.out')
+        expect(@runner).to have_output('scraper', 'full-scraper.out')
+        expect(@runner).to have_output('transformer', 'full-transformer.out')
       end
 
       it 'returns true' do
@@ -57,9 +57,9 @@ describe TurbotRunner::Runner do
 
       it 'produces expected outputs' do
         @runner.run
-        expect([@runner, 'scraper']).to have_output('full-scraper.out')
-        expect([@runner, 'transformer1']).to have_output('full-transformer.out')
-        expect([@runner, 'transformer2']).to have_output('full-transformer.out')
+        expect(@runner).to have_output('scraper', 'full-scraper.out')
+        expect(@runner).to have_output('transformer1', 'full-transformer.out')
+        expect(@runner).to have_output('transformer2', 'full-transformer.out')
       end
 
       it 'returns true' do
@@ -73,7 +73,7 @@ describe TurbotRunner::Runner do
           expected_log = "doing...\ndone\n"
           runner = test_runner('logging-bot', :log_to_file => true)
           runner.run
-          expect([runner, 'scraper']).to have_error_output_matching(expected_log)
+          expect(runner).to have_error_output_matching('scraper', expected_log)
         end
       end
 
@@ -111,7 +111,7 @@ describe TurbotRunner::Runner do
 
       it 'writes error to stderr' do
         @runner.run
-        expect([@runner, 'scraper']).to have_error_output_matching(/Oh no/)
+        expect(@runner).to have_error_output_matching('scraper', /Oh no/)
       end
 
       it 'still runs the transformers' do
@@ -144,7 +144,7 @@ describe TurbotRunner::Runner do
 
       it 'writes error to stderr' do
         @runner.run
-        expect([@runner, 'transformer2']).to have_error_output_matching(/Oh no/)
+        expect(@runner).to have_error_output_matching('transformer2', /Oh no/)
       end
     end
 
@@ -176,7 +176,7 @@ describe TurbotRunner::Runner do
 
       it 'produces expected output' do
         @runner.run
-        expect([@runner, 'scraper']).to have_output('truncated-scraper.out')
+        expect(@runner).to have_output('scraper', 'truncated-scraper.out')
       end
 
       it 'returns true' do
@@ -317,15 +317,22 @@ describe TurbotRunner::Runner do
 end
 
 
-RSpec::Matchers.define :have_output do |expected|
-  match do |actual|
-    runner, script = actual
-
+RSpec::Matchers.define(:have_output) do |script, expected|
+  match do |runner|
     expected_path = File.join('spec', 'outputs', expected)
     expected_output = File.readlines(expected_path).map {|line| JSON.parse(line)}
     actual_path = File.join(runner.base_directory, 'output', "#{script}.out")
     actual_output = File.readlines(actual_path).map {|line| JSON.parse(line)}
     expect(expected_output).to eq(actual_output)
+  end
+end
+
+
+RSpec::Matchers.define(:have_error_output_matching) do |script, expected|
+  match do |runner|
+    actual_path = File.join(runner.base_directory, 'output', "#{script}.err")
+    actual_output = File.read(actual_path)
+    expect(actual_output).to match(expected)
   end
 end
 
@@ -347,17 +354,6 @@ end
 RSpec::Matchers.define(:fail_in_transformer) do
   match do |runner|
     expect(runner.run).to eq(TurbotRunner::Runner::RC_TRANSFORMER_FAILED)
-  end
-end
-
-
-RSpec::Matchers.define :have_error_output_matching do |expected|
-  match do |actual|
-    runner, script = actual
-
-    actual_path = File.join(runner.base_directory, 'output', "#{script}.err")
-    actual_output = File.read(actual_path)
-    expect(actual_output).to match(expected)
   end
 end
 
