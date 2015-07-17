@@ -2,6 +2,9 @@ require 'json'
 require 'fileutils'
 require 'pathname'
 
+ERR_TRANSFORMER_FAILED = 2
+ERR_SCRAPER_FAILED = 1
+
 module TurbotRunner
   class Runner
     attr_reader :base_directory
@@ -21,19 +24,28 @@ module TurbotRunner
       end
     end
 
-    def run
+    def run(opts={})
       set_up_output_directory
-
-      succeeded = run_script(scraper_config)
+      if opts[:scraper_provided]
+        succeeded = true
+      else
+        succeeded = run_script(scraper_config)
+      end
       # Run the transformers even if the scraper fails
       transformers.each do |transformer_config|
         config = transformer_config.merge(
           :base_directory => @base_directory,
           :duplicates_allowed => duplicates_allowed
         )
-        succeeded = run_script(config, input_file=scraper_output_file) && succeeded
+        transformer_succeeded = run_script(config, input_file=scraper_output_file) && transformers_succeeded
       end
-      succeeded
+      if succeeded && transformers_succeeded
+        0
+      elsif succeeded && !transformers_succeeded
+        ERR_TRANSFORMER_FAILED
+      else
+        ERR_SCRAPER_FAILED
+      end
     end
 
     def set_up_output_directory
