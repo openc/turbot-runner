@@ -19,7 +19,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns true' do
-        expect(@runner.run).to be(true)
+        expect(@runner).to succeed
       end
     end
 
@@ -46,7 +46,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns true' do
-        expect(@runner.run).to be(true)
+        expect(@runner).to succeed
       end
     end
 
@@ -63,7 +63,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns true' do
-        expect(@runner.run).to be(true)
+        expect(@runner).to succeed
       end
     end
 
@@ -106,7 +106,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns false' do
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_scraper
       end
 
       it 'writes error to stderr' do
@@ -129,7 +129,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns true' do
-        expect(@runner.run).to be(true)
+        expect(@runner).to succeed
       end
     end
 
@@ -139,7 +139,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns false' do
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_transformer
       end
 
       it 'writes error to stderr' do
@@ -180,21 +180,21 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns true' do
-        expect(@runner.run).to be(true)
+        expect(@runner).to succeed
       end
     end
 
     context 'with a scraper that produces an invalid record' do
       it 'returns false' do
         @runner = test_runner('invalid-record-bot')
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_scraper
       end
     end
 
     context 'with a scraper that produces invalid JSON' do
       it 'returns false' do
         @runner = test_runner('invalid-json-bot')
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_scraper
       end
     end
 
@@ -209,7 +209,7 @@ describe TurbotRunner::Runner do
           :timeout => 1,
           :log_to_file => true
         )
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_scraper
       end
     end
 
@@ -219,7 +219,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'returns false' do
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_scraper
       end
     end
 
@@ -239,7 +239,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'raises returns false' do
-        expect(@runner.run).to be(false)
+        expect(@runner).to fail_in_scraper
       end
     end
 
@@ -249,7 +249,7 @@ describe TurbotRunner::Runner do
       end
 
       it 'raises returns false' do
-        expect(@runner.run).to be(true)
+        expect(@runner).to succeed
       end
     end
   end
@@ -326,6 +326,27 @@ RSpec::Matchers.define :have_output do |expected|
     actual_path = File.join(runner.base_directory, 'output', "#{script}.out")
     actual_output = File.readlines(actual_path).map {|line| JSON.parse(line)}
     expect(expected_output).to eq(actual_output)
+  end
+end
+
+
+RSpec::Matchers.define(:succeed) do
+  match do |runner|
+    expect(runner.run).to eq(TurbotRunner::Runner::RC_OK)
+  end
+end
+
+
+RSpec::Matchers.define(:fail_in_scraper) do
+  match do |runner|
+    expect(runner.run).to eq(TurbotRunner::Runner::RC_SCRAPER_FAILED)
+  end
+end
+
+
+RSpec::Matchers.define(:fail_in_transformer) do
+  match do |runner|
+    expect(runner.run).to eq(TurbotRunner::Runner::RC_TRANSFORMER_FAILED)
   end
 end
 
