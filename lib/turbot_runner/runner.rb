@@ -4,6 +4,10 @@ require 'pathname'
 
 module TurbotRunner
   class Runner
+    RC_OK = 0
+    RC_SCRAPER_FAILED = 1
+    RC_TRANSFORMER_FAILED = 2
+
     attr_reader :base_directory
 
     def initialize(directory, options={})
@@ -21,19 +25,32 @@ module TurbotRunner
       end
     end
 
-    def run
+    def run(opts={})
       set_up_output_directory
 
-      succeeded = run_script(scraper_config)
+      if opts[:scraper_provided]
+        scraper_succeeded = true
+      else
+        scraper_succeeded = run_script(scraper_config)
+      end
+
       # Run the transformers even if the scraper fails
+      transformers_succeeded = true
       transformers.each do |transformer_config|
         config = transformer_config.merge(
           :base_directory => @base_directory,
           :duplicates_allowed => duplicates_allowed
         )
-        succeeded = run_script(config, input_file=scraper_output_file) && succeeded
+        transformers_succeeded = run_script(config, input_file=scraper_output_file) && transformers_succeeded
       end
-      succeeded
+
+      if !scraper_succeeded
+        RC_SCRAPER_FAILED
+      elsif !transformers_succeeded
+        RC_TRANSFORMER_FAILED
+      else
+        RC_OK
+      end
     end
 
     def set_up_output_directory

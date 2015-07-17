@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot-runner (0.1.45)
+    turbot-runner (0.2.0)
       activesupport (= 4.1.4)
       openc-json_schema (= 0.0.13)
 
