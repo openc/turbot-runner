@@ -88,8 +88,9 @@ describe TurbotRunner::Runner do
       before do
         @runner = test_runner('bot-that-emits-run-ended', :log_to_file => true)
       end
-      it 'calls handle_run_ended on the handler' do
-        expect_any_instance_of(TurbotRunner::BaseHandler).to receive(:handle_run_ended)
+
+      it 'calls handle_snapshot_ended on the handler' do
+        expect_any_instance_of(TurbotRunner::BaseHandler).to receive(:handle_snapshot_ended)
         @runner.run
       end
 
@@ -99,6 +100,21 @@ describe TurbotRunner::Runner do
       end
     end
 
+    context 'with a bot that outputs SNAPSHOT ENDED' do
+      before do
+        @runner = test_runner('bot-that-emits-snapshot-ended', :log_to_file => true)
+      end
+
+      it 'calls handle_snapshot_ended on the handler' do
+        expect_any_instance_of(TurbotRunner::BaseHandler).to receive(:handle_snapshot_ended)
+        @runner.run
+      end
+
+      it 'interrupts the run' do
+        expect_any_instance_of(TurbotRunner::ScriptRunner).to receive(:interrupt)
+        @runner.run
+      end
+    end
 
     context 'with a bot that crashes in scraper' do
       before do

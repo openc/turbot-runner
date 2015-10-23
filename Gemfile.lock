@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot-runner (0.2.4)
+    turbot-runner (0.2.5)
       activesupport (= 4.1.4)
       openc-json_schema (= 0.0.13)
 
@@ -22,7 +22,7 @@ GEM
     json-schema-openc-fork (0.0.1)
       addressable (~> 2.3)
     method_source (0.8.2)
-    minitest (5.8.1)
+    minitest (5.8.0)
     openc-json_schema (0.0.13)
       json-schema-openc-fork (= 0.0.1)
     pry (0.10.0)
