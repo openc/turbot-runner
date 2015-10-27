@@ -3,10 +3,7 @@ module TurbotRunner
     def handle_valid_record(record, data_type)
     end
 
-    def handle_snapshot_ended
-    end
-
-    def handle_run_ended
+    def handle_snapshot_ended(data_type)
     end
 
     def handle_invalid_record(record, data_type, error_message)

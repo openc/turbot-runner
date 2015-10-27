@@ -13,7 +13,7 @@ module TurbotRunner
     def process(line)
       begin
         if line.strip == "SNAPSHOT ENDED" || line.strip == "RUN ENDED" # latter is legacy
-          @record_handler.handle_snapshot_ended
+          @record_handler.handle_snapshot_ended(@data_type)
           @runner.interrupt if @runner
         else
           record = Openc::JsonSchema.convert_dates(schema_path, JSON.parse(line))
