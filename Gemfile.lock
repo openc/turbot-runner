@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    turbot-runner (0.2.7)
+    turbot-runner (0.2.8)
       activesupport (= 4.1.4)
       openc-json_schema (= 0.0.13)
 
@@ -54,3 +54,6 @@ DEPENDENCIES
   rspec (>= 3.0)
   rspec-mocks (>= 3.0)
   turbot-runner!
+
+BUNDLED WITH
+   1.10.6
