@@ -15,4 +15,4 @@
 Bump the version in `lib/turbot_runner/version.rb`, then:
 
     git commit lib/turbot_runner/version.rb -m 'Release new version'
-    bundle exec rake release # requires Rubygems credentials
+    rake release # requires Rubygems credentials
