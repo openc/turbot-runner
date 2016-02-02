@@ -19,4 +19,8 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "activesupport", '4.1.4'
   gem.add_dependency "openc-json_schema", '0.0.13'
+  gem.add_development_dependency "pry"
+  gem.add_development_dependency "rake"
+  gem.add_development_dependency "rspec", ">= 3.0"
+  gem.add_development_dependency "rspec-mocks", ">= 3.0"
 end
