@@ -1,5 +1,4 @@
-$:.unshift File.expand_path("../lib", __FILE__)
-require "turbot_runner/version"
+require File.expand_path('../lib/turbot_runner/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.name    = "turbot-runner"
@@ -11,16 +10,10 @@ Gem::Specification.new do |gem|
   gem.summary     = "Utilities for running bots with Turbot"
   gem.license     = "MIT"
 
-  # use git to list files in main repo
-  gem.files = %x{ git ls-files }.split("\n").select do |d|
-    d =~ %r{^(License|README|bin/|data/|ext/|lib/|spec/|schema/)}
-  end
-
-  submodule_files = %x{git submodule foreach --recursive git ls-files}.split("\n").select do |d|
-    d =~ %r{^(schemas/)}
-  end.map{|x| "schema/#{x}"}
-
-  gem.files.concat(submodule_files)
+  gem.files         = `git ls-files`.split("\n") + %x{git submodule foreach --quiet --recursive git ls-files schemas}.split("\n").map{|filename| "schema/#{filename}"}
+  gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  gem.require_paths = ["lib"]
 
   gem.required_ruby_version = '>=1.9.2'
 
