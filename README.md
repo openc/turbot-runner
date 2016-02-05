@@ -63,3 +63,5 @@ default, 24 hours) it interrupts itself, and marks the run as having failed.
 Tests are run with rspec:
 
 `./bin/rspec`
+
+The first two specs to run require some manual input.

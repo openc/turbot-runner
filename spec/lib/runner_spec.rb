@@ -2,11 +2,6 @@ require 'json'
 require 'turbot_runner'
 
 describe TurbotRunner::Runner do
-  after(:all) do
-    puts
-    puts 'If all specs passed, you should now run `ruby spec/manual_spec.rb`'
-  end
-
   describe '#run' do
     context 'with a bot written in ruby' do
       before do
