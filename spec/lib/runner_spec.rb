@@ -266,11 +266,12 @@ describe TurbotRunner::Runner do
 
     context 'when the scraped data is provided' do
       before do
+        @runner = test_runner('bot-with-transformer', :scraper_provided => true)
+        @runner.set_up_output_directory
         FileUtils.cp(
           File.join('spec', 'outputs', 'full-scraper.out'),
           File.join(File.dirname(__FILE__), '../bots', 'bot-with-transformer', 'output', 'scraper.out')
         )
-        @runner = test_runner('bot-with-transformer', :scraper_provided => true)
       end
 
       it 'does not run scraper' do

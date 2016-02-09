@@ -18,6 +18,7 @@ module TurbotRunner
         else
           record = Openc::JsonSchema.convert_dates(schema_path, JSON.parse(line))
 
+          # TODO Document why we aren't passing retrieved_at to the validator.
           record_to_validate = record.select {|k, v| k != 'retrieved_at'}
 
           error_message = Validator.validate(
