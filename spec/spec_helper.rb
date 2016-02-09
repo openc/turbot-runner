@@ -1,4 +1,15 @@
-require 'turbot_runner'
+require 'rubygems'
+
+require 'simplecov'
+require 'coveralls'
+SimpleCov.formatter = Coveralls::SimpleCov::Formatter
+SimpleCov.start do
+  add_filter 'spec'
+end
+
+require 'rspec'
+
+require File.dirname(__FILE__) + '/../lib/turbot_runner'
 
 RSpec::Matchers.define(:fail_validation_with) do |expected_error|
   match do |record|
