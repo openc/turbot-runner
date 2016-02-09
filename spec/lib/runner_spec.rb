@@ -168,7 +168,7 @@ describe TurbotRunner::Runner do
     context 'with a handler that interrupts the runner' do
       before do
         class Handler < TurbotRunner::BaseHandler
-          def initialize(*)
+          def initialize
             @count = 0
             super
           end
@@ -296,8 +296,8 @@ describe TurbotRunner::Runner do
       class Handler < TurbotRunner::BaseHandler
         attr_reader :records_seen
 
-        def initialize(*)
-          @records_seen = Hash.new {|h, k| h[k] = 0}
+        def initialize
+          @records_seen = Hash.new(0)
           super
         end
 
@@ -324,7 +324,7 @@ describe TurbotRunner::Runner do
     it 'can cope when scraper has failed immediately' do
       test_runner('bot-that-crashes-immediately').run
 
-      runner = test_runner('bot-with-transformer',
+      runner = test_runner('bot-that-crashes-immediately',
         :record_handler => @handler
       )
 
