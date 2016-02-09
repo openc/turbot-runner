@@ -338,15 +338,19 @@ describe TurbotRunner::Runner do
     end
 
     it 'clears existing output' do
+      @runner.set_up_output_directory
       path = File.join(@runner.base_directory, 'output', 'scraper.out')
       FileUtils.touch(path)
+
       @runner.set_up_output_directory
       expect(File.exist?(path)).to be(false)
     end
 
     it 'does not clear existing files that are not output files' do
+      @runner.set_up_output_directory
       path = File.join(@runner.base_directory, 'output', 'stdout')
       FileUtils.touch(path)
+
       @runner.set_up_output_directory
       expect(File.exist?(path)).to be(true)
     end
