@@ -32,7 +32,7 @@ module TurbotRunner
         end
       end
 
-      return nil
+      nil
     end
 
     def identifying_hash(record, identifying_fields)

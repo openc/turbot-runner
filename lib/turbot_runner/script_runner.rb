@@ -12,7 +12,7 @@ module TurbotRunner
       @script_config = script_config
       record_handler = options[:record_handler] || BaseHandler.new  # A BaseHandler does nothing
       @processor = Processor.new(self, script_config, record_handler)
-      @timeout = options[:timeout] || 60 * 60 * 24
+      @timeout = options[:timeout] || 86_400
     end
 
     def run

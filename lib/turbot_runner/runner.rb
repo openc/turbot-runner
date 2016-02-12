@@ -38,10 +38,10 @@ module TurbotRunner
       # Run the transformers even if the scraper fails
       transformers_succeeded = true
       transformers.each do |transformer_config|
-        config = transformer_config.merge(
+        config = transformer_config.merge({
           :base_directory => @base_directory,
-          :duplicates_allowed => duplicates_allowed
-        )
+          :duplicates_allowed => duplicates_allowed,
+        })
         transformers_succeeded = run_script(config, input_file=scraper_output_file) && transformers_succeeded
       end
 
@@ -166,7 +166,7 @@ module TurbotRunner
         :file => scraper_script,
         :data_type => scraper_data_type,
         :identifying_fields => scraper_identifying_fields,
-        :duplicates_allowed => duplicates_allowed
+        :duplicates_allowed => duplicates_allowed,
       }
     end
 
