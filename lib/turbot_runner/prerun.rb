@@ -1,3 +1,3 @@
 # Disable output buffering
-STDOUT.sync = true
-STDERR.sync = true
+$stdout.sync = true
+$stderr.sync = true
