@@ -4,7 +4,7 @@ require 'turbot_runner'
 describe TurbotRunner::Runner do
   after(:all) do
     puts
-    puts 'If all specs passed, you should now run `ruby spec/manual_spec.rb`'
+    puts 'If all specs passed, you should now run `ruby spec/manual.rb`'
   end
 
   describe '#run' do
@@ -79,7 +79,7 @@ describe TurbotRunner::Runner do
 
       context 'when logging to file not enabled' do
         xit 'logs to stderr' do
-          # This is tested in manual_spec.rb
+          # This is tested in manual.rb
         end
       end
     end
@@ -166,7 +166,7 @@ describe TurbotRunner::Runner do
 
     context 'with a bot that is interrupted in scraper' do
       xit 'produces truncated output' do
-        # This is tested in manual_spec.rb
+        # This is tested in manual.rb
       end
     end
 

@@ -41,18 +41,33 @@ end
 
 RSpec::Matchers.define(:succeed) do
   match do |runner|
-    expect(runner.run).to eq(TurbotRunner::Runner::RC_OK)
+    @actual_run = runner.run
+    expect(@actual_run).to eq(TurbotRunner::Runner::RC_OK)
+  end
+
+  failure_message do |actual|
+    "Expected output to be TurbotRunner::Runner::RC_OK, but was #{@actual_run}"
   end
 end
 
 RSpec::Matchers.define(:fail_in_scraper) do
   match do |runner|
-    expect(runner.run).to eq(TurbotRunner::Runner::RC_SCRAPER_FAILED)
+    @actual_run = runner.run
+    expect(@actual_run).to eq(TurbotRunner::Runner::RC_SCRAPER_FAILED)
+  end
+
+  failure_message do |actual|
+    "Expected output to be TurbotRunner::Runner::RC_SCRAPER_FAILED, but was #{@actual_run}"
   end
 end
 
 RSpec::Matchers.define(:fail_in_transformer) do
   match do |runner|
-    expect(runner.run).to eq(TurbotRunner::Runner::RC_TRANSFORMER_FAILED)
+    @actual_run = runner.run
+    expect(@actual_run).to eq(TurbotRunner::Runner::RC_TRANSFORMER_FAILED)
+  end
+
+  failure_message do |actual|
+    "Expected output to be TurbotRunner::Runner::RC_TRANSFORMER_FAILED, but was #{@actual_run}"
   end
 end
