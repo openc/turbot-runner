@@ -2,6 +2,11 @@ require 'json'
 require 'turbot_runner'
 
 describe TurbotRunner::Runner do
+  after(:all) do
+    puts
+    puts 'If all specs passed, you should now run `ruby spec/manual_spec.rb`'
+  end
+
   describe '#run' do
     context 'with a bot written in ruby' do
       before do
@@ -356,50 +361,4 @@ describe TurbotRunner::Runner do
       expect(File.exist?(path)).to be(true)
     end
   end
-end
-
-
-RSpec::Matchers.define(:have_output) do |script, expected|
-  match do |runner|
-    expected_path = File.join('spec', 'outputs', expected)
-    expected_output = File.readlines(expected_path).map {|line| JSON.parse(line)}
-    actual_path = File.join(runner.base_directory, 'output', "#{script}.out")
-    actual_output = File.readlines(actual_path).map {|line| JSON.parse(line)}
-    expect(expected_output).to eq(actual_output)
-  end
-end
-
-
-RSpec::Matchers.define(:have_error_output_matching) do |script, expected|
-  match do |runner|
-    actual_path = File.join(runner.base_directory, 'output', "#{script}.err")
-    actual_output = File.read(actual_path)
-    expect(actual_output).to match(expected)
-  end
-end
-
-
-RSpec::Matchers.define(:succeed) do
-  match do |runner|
-    expect(runner.run).to eq(TurbotRunner::Runner::RC_OK)
-  end
-end
-
-
-RSpec::Matchers.define(:fail_in_scraper) do
-  match do |runner|
-    expect(runner.run).to eq(TurbotRunner::Runner::RC_SCRAPER_FAILED)
-  end
-end
-
-
-RSpec::Matchers.define(:fail_in_transformer) do
-  match do |runner|
-    expect(runner.run).to eq(TurbotRunner::Runner::RC_TRANSFORMER_FAILED)
-  end
-end
-
-def test_runner(name, opts={})
-  test_bot_location = File.join(File.dirname(__FILE__), '../bots', name)
-  TurbotRunner::Runner.new(test_bot_location, opts)
 end
