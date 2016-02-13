@@ -1,0 +1,35 @@
+# @see https://mattbrictson.com/how-to-test-ruby-windows
+# @see https://github.com/apiaryio/apiary-client/blob/master/appveyor.yml
+version: '{build}'
+skip_tags: true
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - ruby --version
+  - gem --version
+  - gem install bundler --no-ri --no-rdoc
+  - bundler --version
+build_script:
+  - bundle install --jobs=3 --retry=3
+test_script:
+  - bundle exec rspec -b < Nul
+artifacts:
+  - path: pkg\*.gem
+environment:
+  matrix:
+    - ruby_version: "193"
+    - ruby_version: "200"
+    - ruby_version: "200-x64"
+    - ruby_version: "21"
+    - ruby_version: "21-x64"
+    - ruby_version: "22"
+    - ruby_version: "22-x64"
+# @see https://www.appveyor.com/docs/build-cache
+cache:
+  - C:\Ruby193\bin                 -> appveyor.yml
+  - C:\Ruby193\lib\ruby\gems\1.9.1 -> appveyor.yml
+  - C:\Ruby200\bin                 -> appveyor.yml
+  - C:\Ruby200\lib\ruby\gems\2.0.0 -> appveyor.yml
+  - C:\Ruby21\bin                  -> appveyor.yml
+  - C:\Ruby21\lib\ruby\gems\2.1.0  -> appveyor.yml
+  - C:\Ruby22\bin                  -> appveyor.yml
+  - C:\Ruby22\lib\ruby\gems\2.2.0  -> appveyor.yml
