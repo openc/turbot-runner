@@ -126,25 +126,6 @@ describe TurbotRunner::Processor do
         expect(@handler).to receive(:handle_valid_record).with(converted_record, @data_type)
         @processor.process(record.to_json)
       end
-
-      it 'does not pass retrieved_at to validator' do
-        record = {
-          'sample_date' => '2014-06-01',
-          'retrieved_at' => '2014-06-01 12:34:56 +0000',
-          'source_url' => 'http://example.com/123',
-          'number' => 123
-        }
-
-        expected_record_to_validate = {
-          'sample_date' => '2014-06-01',
-          'source_url' => 'http://example.com/123',
-          'number' => 123
-        }
-
-        expect(TurbotRunner::Validator).to receive(:validate).
-          with('primary data', expected_record_to_validate, ['number'], Set.new)
-        @processor.process(record.to_json)
-      end
     end
 
     it 'can handle schemas with $refs' do
