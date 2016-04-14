@@ -10,20 +10,23 @@ module TurbotRunner
       @seen_uids = script_config[:duplicates_allowed] ? nil : Set.new
     end
 
-    def process(line)
+    def process(line, opts={})
+      validate = opts[:validate].nil? ? true : opts[:validate]
       begin
         if line.strip == "SNAPSHOT ENDED" || line.strip == "RUN ENDED" # latter is legacy
           @record_handler.handle_snapshot_ended(@data_type)
           @runner.interrupt if @runner
         else
           record = Openc::JsonSchema.convert_dates(schema_path, JSON.parse(line))
-
-          error_message = Validator.validate(
-            @data_type,
-            record,
-            @identifying_fields,
-            @seen_uids
-          )
+          error_message = nil
+          if validate
+            error_message = Validator.validate(
+              @data_type,
+              record,
+              @identifying_fields,
+              @seen_uids
+            )
+          end
 
           if error_message.nil?
             begin

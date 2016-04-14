@@ -327,6 +327,18 @@ describe TurbotRunner::Runner do
       expect(@handler.records_seen['simple-licence']).to eq(10)
     end
 
+    it 'passes opts to processor.process' do
+      test_runner('bot-with-transformer').run
+      runner = test_runner('bot-with-transformer',
+        :record_handler => @handler
+      )
+      opts = {frob: 5}
+      processor = double('processor')
+      allow(TurbotRunner::Processor).to receive(:new).and_return(processor)
+      expect(processor).to receive(:process).with(anything, opts).at_least(:once)
+      runner.process_output(opts)
+    end
+
     it 'can cope when scraper has failed immediately' do
       test_runner('bot-that-crashes-immediately').run
 
