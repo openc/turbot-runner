@@ -68,11 +68,11 @@ module TurbotRunner
       end
     end
 
-    def process_output
-      process_script_output(scraper_config)
+    def process_output(opts={})
+      process_script_output(scraper_config, opts)
 
       transformers.each do |transformer_config|
-        process_script_output(transformer_config.merge(:base_directory => @base_directory))
+        process_script_output(transformer_config.merge(:base_directory => @base_directory), opts)
       end
     end
 
@@ -115,7 +115,7 @@ module TurbotRunner
       script_runner.run # returns boolean indicating success
     end
 
-    def process_script_output(script_config)
+    def process_script_output(script_config, opts)
       # The first argument to the Processor constructor is a nil
       # Runner. This is because no running behaviour
       # (e.g. interruptions etc) is required; we just want to do
@@ -124,7 +124,7 @@ module TurbotRunner
       file = output_file(script_config[:file])
       File.open(file) do |f|
         f.each_line do |line|
-          processor.process(line)
+          processor.process(line, opts)
         end
       end
     rescue Errno::ENOENT => e
