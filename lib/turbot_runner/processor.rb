@@ -11,7 +11,7 @@ module TurbotRunner
     end
 
     def process(line, opts={})
-      validate = opts[:validate] || true
+      validate = opts[:validate].nil? ? true : opts[:validate]
       begin
         if line.strip == "SNAPSHOT ENDED" || line.strip == "RUN ENDED" # latter is legacy
           @record_handler.handle_snapshot_ended(@data_type)

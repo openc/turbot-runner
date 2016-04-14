@@ -31,16 +31,26 @@ describe TurbotRunner::Processor do
       end
 
       context 'with invalid record' do
-        it 'calls Handler#handle_invalid_record' do
-          record = {
+        before do
+          @record = {
             'sample_date' => '2014-06-01',
             'number' => 123
           }
+        end
 
+        it 'calls Handler#handle_invalid_record' do
           expected_error = 'Missing required property: source_url'
           expect(@handler).to receive(:handle_invalid_record).
-            with(record, @data_type, expected_error)
-          @processor.process(record.to_json)
+            with(@record, @data_type, expected_error)
+          @processor.process(@record.to_json)
+        end
+
+        context 'requesting non-validation' do
+          it 'calls Handler#handle_valid_record' do
+            expect(@handler).to receive(:handle_valid_record).
+                                 with(@record, @data_type)
+            @processor.process(@record.to_json, validate: false)
+          end
         end
       end
 
