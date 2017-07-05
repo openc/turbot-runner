@@ -4,7 +4,6 @@
 [![Build Status](https://secure.travis-ci.org/openc/turbot-runner.png)](https://travis-ci.org/openc/turbot-runner)
 [![Build Status](https://ci.appveyor.com/api/projects/status/8wvd4ygxhk6wj94s?svg=true)](https://ci.appveyor.com/project/jpmckinney/turbot-runner)
 [![Dependency Status](https://gemnasium.com/openc/turbot-runner.png)](https://gemnasium.com/openc/turbot-runner)
-[![Coverage Status](https://coveralls.io/repos/openc/turbot-runner/badge.png)](https://coveralls.io/r/openc/turbot-runner)
 [![Code Climate](https://codeclimate.com/github/openc/turbot-runner.png)](https://codeclimate.com/github/openc/turbot-runner)
 
 ## Getting started
