@@ -116,6 +116,8 @@ module TurbotRunner
     end
 
     def process_script_output(script_config, opts)
+      return if opts[:skip_data_types] && opts[:skip_data_types].include?(script_config[:data_type])
+
       # The first argument to the Processor constructor is a nil
       # Runner. This is because no running behaviour
       # (e.g. interruptions etc) is required; we just want to do
