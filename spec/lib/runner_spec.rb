@@ -348,6 +348,20 @@ describe TurbotRunner::Runner do
 
       runner.process_output
     end
+
+    context 'when skip_data_types is set' do
+      it 'skips the data type' do
+        test_runner('bot-with-transformer').run
+
+        runner = test_runner('bot-with-transformer',
+          :record_handler => @handler
+        )
+
+        runner.process_output(skip_data_types: ['primary data'])
+        expect(@handler.records_seen['primary data']).to eq(0)
+        expect(@handler.records_seen['simple-licence']).to eq(10)
+      end
+    end
   end
 
   describe '#set_up_output_directory' do
