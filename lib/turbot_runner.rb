@@ -20,7 +20,7 @@ module TurbotRunner
   end
 
   def self.get_and_validate_schema_path(data_type)
-    hyphenated_name = data_type.to_s.gsub("_", "-").gsub(" ", "-")
+    hyphenated_name = data_type.to_s.gsub(" ", "-")
     path = File.join(SCHEMAS_PATH, "#{hyphenated_name}-schema.json")
     raise TurbotRunner::InvalidDataType.new("Could not find #{path}") unless File.exists?(path)
     path
