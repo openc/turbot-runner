@@ -385,6 +385,15 @@ describe TurbotRunner::Runner do
         runner.process_output
       end
     end
+
+    context 'when no bot has run' do
+      it 'proceeds without errors' do
+        runner = test_runner('bot-with-transformer',
+          :record_handler => @handler
+        )
+        runner.process_output
+      end
+    end
   end
 
   describe '#set_up_output_directory' do
