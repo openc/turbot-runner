@@ -69,11 +69,14 @@ describe TurbotRunner::Runner do
 
     context 'with a bot that logs' do
       context 'when logging to file enabled' do
+        before do
+          @runner = test_runner('logging-bot', :log_to_file => true)
+        end
+
         it 'logs to file' do
           expected_log = "doing...\ndone\n"
-          runner = test_runner('logging-bot', :log_to_file => true)
-          runner.run
-          expect(runner).to have_error_output_matching('scraper', expected_log)
+          @runner.run
+          expect(@runner).to have_error_output_matching('scraper', expected_log)
         end
       end
 
@@ -201,15 +204,21 @@ describe TurbotRunner::Runner do
     end
 
     context 'with a scraper that produces an invalid record' do
-      it 'returns false' do
+      before do
         @runner = test_runner('invalid-record-bot')
+      end
+
+      it 'returns false' do
         expect(@runner).to fail_in_scraper
       end
     end
 
     context 'with a scraper that produces invalid JSON' do
-      it 'returns false' do
+      before do
         @runner = test_runner('invalid-json-bot')
+      end
+
+      it 'returns false' do
         expect(@runner).to fail_in_scraper
       end
     end
@@ -220,11 +229,14 @@ describe TurbotRunner::Runner do
       # output file is created; however, the way we're redirecting
       # stdout using the shell means the file doesn't get created
       # until
-      it 'returns false' do
+      before do
         @runner = test_runner('bot-with-pause',
           :timeout => 1,
           :log_to_file => true
         )
+      end
+
+      it 'returns false' do
         expect(@runner).to fail_in_scraper
       end
     end
