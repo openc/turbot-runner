@@ -7,6 +7,10 @@ describe TurbotRunner::Runner do
     puts 'If all specs passed, you should now run `ruby spec/manual.rb`'
   end
 
+  after do
+    FileUtils.rm_rf(File.join(@runner.base_directory, "output")) if @runner
+  end
+
   describe '#run' do
     context 'with a bot written in ruby' do
       before do
@@ -329,7 +333,8 @@ describe TurbotRunner::Runner do
 
     context 'with a bot that runs correctly' do
       before do
-        test_runner('bot-with-transformer').run
+        @runner = test_runner('bot-with-transformer')
+        @runner.run
       end
 
       it 'calls handler once for each line of output' do
@@ -368,7 +373,8 @@ describe TurbotRunner::Runner do
 
     context 'with a bot that crashes immediately' do
       before do
-        test_runner('bot-that-crashes-immediately').run
+        @runner = test_runner('bot-that-crashes-immediately')
+        @runner.run
       end
 
       it 'can cope with the empty files' do
