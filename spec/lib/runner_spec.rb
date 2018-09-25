@@ -315,51 +315,56 @@ describe TurbotRunner::Runner do
       @handler = Handler.new
     end
 
-    it 'calls handler once for each line of output' do
-      test_runner('bot-with-transformer').run
-
-      runner = test_runner('bot-with-transformer',
-        :record_handler => @handler
-      )
-
-      runner.process_output
-      expect(@handler.records_seen['primary data']).to eq(10)
-      expect(@handler.records_seen['simple-licence']).to eq(10)
-    end
-
-    it 'passes opts to processor.process' do
-      test_runner('bot-with-transformer').run
-      runner = test_runner('bot-with-transformer',
-        :record_handler => @handler
-      )
-      opts = {frob: 5}
-      processor = double('processor')
-      allow(TurbotRunner::Processor).to receive(:new).and_return(processor)
-      expect(processor).to receive(:process).with(anything, opts).at_least(:once)
-      runner.process_output(opts)
-    end
-
-    it 'can cope when scraper has failed immediately' do
-      test_runner('bot-that-crashes-immediately').run
-
-      runner = test_runner('bot-that-crashes-immediately',
-        :record_handler => @handler
-      )
-
-      runner.process_output
-    end
-
-    context 'when skip_data_types is set' do
-      it 'skips the data type' do
+    context 'with a bot that runs correctly' do
+      before do
         test_runner('bot-with-transformer').run
+      end
 
+      it 'calls handler once for each line of output' do
         runner = test_runner('bot-with-transformer',
           :record_handler => @handler
         )
 
-        runner.process_output(skip_data_types: ['primary data'])
-        expect(@handler.records_seen['primary data']).to eq(0)
+        runner.process_output
+        expect(@handler.records_seen['primary data']).to eq(10)
         expect(@handler.records_seen['simple-licence']).to eq(10)
+      end
+
+      it 'passes opts to processor.process' do
+        runner = test_runner('bot-with-transformer',
+          :record_handler => @handler
+        )
+        opts = {frob: 5}
+        processor = double('processor')
+        allow(TurbotRunner::Processor).to receive(:new).and_return(processor)
+        expect(processor).to receive(:process).with(anything, opts).at_least(:once)
+        runner.process_output(opts)
+      end
+
+      context 'when skip_data_types is set' do
+        it 'skips the data type' do
+          runner = test_runner('bot-with-transformer',
+            :record_handler => @handler
+          )
+
+          runner.process_output(skip_data_types: ['primary data'])
+          expect(@handler.records_seen['primary data']).to eq(0)
+          expect(@handler.records_seen['simple-licence']).to eq(10)
+        end
+      end
+    end
+
+    context 'with a bot that crashes immediately' do
+      before do
+        test_runner('bot-that-crashes-immediately').run
+      end
+
+      it 'can cope with the empty files' do
+        runner = test_runner('bot-that-crashes-immediately',
+          :record_handler => @handler
+        )
+
+        runner.process_output
       end
     end
   end
