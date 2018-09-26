@@ -124,15 +124,13 @@ module TurbotRunner
       # record handling.
       processor = Processor.new(nil, script_config, @record_handler)
       file = output_file(script_config[:file])
-      File.open(file) do |f|
-        f.each_line do |line|
-          processor.process(line, opts)
+      if File.exist?(file)
+        File.open(file) do |f|
+          f.each_line do |line|
+            processor.process(line, opts)
+          end
         end
       end
-    rescue Errno::ENOENT => e
-      # We only want to catch ENOENT if the output file doesn't exist, and not
-      # if, for instance, a schema file is missing.
-      raise unless e.message == "No such file or directory - #{output_file(script_config[:file])}"
     end
 
     def build_command(script, input_file=nil)
